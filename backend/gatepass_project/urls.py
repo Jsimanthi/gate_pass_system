@@ -35,7 +35,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')), # For DRF's login/logout in browsable API
 
     # Include URLs from your custom apps here as they are created
-    # path('api/users/', include('apps.users.urls')),
+    path('api/users/', include('apps.users.urls')),
     # path('api/vehicles/', include('apps.vehicles.urls')),
     # path('api/drivers/', include('apps.drivers.urls')),
     # path('api/gatepass/', include('apps.gatepass_core.urls')),
