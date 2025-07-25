@@ -1,0 +1,38 @@
+# Python / Django
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+env/
+db.sqlite3
+.env
+*.log
+media/
+static_cdn/
+
+# Flutter
+.dart_tool/
+.flutter-plugins/
+.flutter-plugins-dependencies/
+.packages
+build/
+ios/.symlinks/
+ios/.vscode/
+android/.gradle/
+android/local.properties
+android/key.properties
+android/keystore/
+android/build/
+android/.idea/
+android/app/build/
+*.apk
+*.aab
+web/
+flutter_web_app/build/ # If you ever create separate Flutter web projects
+
+# IDE/OS specific
+.DS_Store
+Thumbs.db
+.vscode/ # This will ignore the root .vscode/ settings, keep it for shared settings.
+         # If you have specific .vscode/ inside backend/ or frontend/, add them there too.
