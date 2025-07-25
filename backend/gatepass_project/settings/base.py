@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     # 'apps.gatepass_core',
     # 'apps.gate_operations',
     # 'apps.reports',
+    "apps.core_data.apps.CoreDataConfig",
+    "apps.vehicles.apps.VehiclesConfig",
+    "apps.drivers.apps.DriversConfig",
 ]
 
 MIDDLEWARE = [
