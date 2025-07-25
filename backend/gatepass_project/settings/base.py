@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "apps.core_data.apps.CoreDataConfig",
     "apps.vehicles.apps.VehiclesConfig",
     "apps.drivers.apps.DriversConfig",
+    "apps.gatepass.apps.GatepassConfig",
+    "apps.gate_operations.apps.GateOperationsConfig",
 ]
 
 MIDDLEWARE = [
