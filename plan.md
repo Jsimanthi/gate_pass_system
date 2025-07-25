@@ -71,6 +71,8 @@ I will proceed module by module, providing code and instructions for each.
 Phase 1: Backend Core Setup
 Module 1.1: Custom User Model & Django Admin Integration
 
+**Status: Completed**
+
 Goal: Replace Django's default User model with a custom one, allowing for future expansion (e.g., specific roles, additional user fields) and integrate it with the Django Admin.
 
 Backend Changes (backend/):
@@ -90,6 +92,8 @@ Frontend Impact: No direct UI changes yet, but the authentication system will re
 Jules AI's Output: Will provide code for apps/users/models.py, apps/users/admin.py, gatepass_core/settings/base.py adjustments, and initial apps/users/urls.py (for future authentication views if not using DRF's default views directly). Will explain migrations.
 
 Module 1.2: JWT Authentication Setup
+
+**Status: Completed**
 
 Goal: Implement JSON Web Token (JWT) based authentication for secure API access.
 
