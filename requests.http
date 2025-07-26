@@ -1,0 +1,40 @@
+### Get JWT Token (Login)
+POST http://127.0.0.1:8000/api/token/
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "admin"
+}
+
+### Create Gate Pass
+# Make sure to replace <YOUR_ACCESS_TOKEN> with the token from the previous request's response.
+# Also, update purpose, gate, vehicle, and driver IDs as per your existing data.
+POST http://127.0.0.1:8000/api/gatepass/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNTI2NTAzLCJpYXQiOjE3NTM1MjI5MDMsImp0aSI6ImU2NGE2YWJlNDRlYTQ2YTI4OTg4NjRmNjY1YTNlMzhjIiwidXNlcl9pZCI6Mn0.OLM8PmFwe0OvcvQ0hZbKnfoilqhX7HKp1nz0yTFTrLQ
+
+{
+    "person_name": "Jane Doe",
+    "person_nid": "9876543210",
+    "person_phone": "+9876543210",
+    "person_address": "456 Oak Ave, Somewhere",
+    "entry_time": "2025-07-27T09:00:00+05:30",
+    "exit_time": "2025-07-27T17:00:00+05:30",
+    "purpose": 1,
+    "gate": 1,
+    "vehicle": null,
+    "driver": null
+}
+
+### Approve Gate Pass (Admin/Staff only)
+# Use an Admin/Staff user's token here
+POST http://127.0.0.1:8000/api/gatepass/1/approve/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNTI2NjEzLCJpYXQiOjE3NTM1MjMwMTMsImp0aSI6IjNjODUzMzkzN2JlYjQzNzQ4ODA2NjdjOTUyNzM2OWE2IiwidXNlcl9pZCI6MX0.LHCSGx2Ea02NnTmIPbRhH9s7VYM208D1VhKHFSBr4y4
+
+### Reject Gate Pass (Admin/Staff only)
+# Use an Admin/Staff user's token here
+POST http://127.0.0.1:8000/api/gatepass/1/reject/
+Content-Type: application/json
+Authorization: Bearer <YOUR_ADMIN_ACCESS_TOKEN>
