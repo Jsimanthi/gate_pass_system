@@ -1,0 +1,9 @@
+{
+    "python.analysis.extraPaths": [
+        "./backend",
+        "./backend/apps"
+    ],
+    "python.defaultInterpreterPath": "C:\\Users\\Stand-By\\Source\\gate_pass_system\\backend\\venv\\Scripts\\python.exe",
+    "python.terminal.activateEnvironment": true
+    // You might have other settings here already
+}
