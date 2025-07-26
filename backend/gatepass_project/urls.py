@@ -36,10 +36,10 @@ urlpatterns = [
 
     # Include URLs from your custom apps here as they are created
     path('api/users/', include('apps.users.urls')),
-    # path('api/vehicles/', include('apps.vehicles.urls')),
-    # path('api/drivers/', include('apps.drivers.urls')),
-    # path('api/gatepass/', include('apps.gatepass_core.urls')),
-    # path('api/gate-operations/', include('apps.gate_operations.urls')),
+    path('api/vehicles/', include('apps.vehicles.urls')),
+    path('api/drivers/', include('apps.drivers.urls')),
+    path('api/gatepass/', include('apps.gatepass.urls')),
+    path('api/gate-operations/', include('apps.gate_operations.urls')),
     # path('api/reports/', include('apps.reports.urls')),
 ]
 
