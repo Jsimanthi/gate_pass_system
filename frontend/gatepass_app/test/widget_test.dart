@@ -7,24 +7,75 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gatepass_app/main.dart'; // Import your main app file
+import 'package:gatepass_app/services/auth_service.dart'; // Import AuthService
+import 'package:gatepass_app/core/api_client.dart';       // Import ApiClient
+import 'package:shared_preferences/shared_preferences.dart'; // Needed for AuthService mock
+import 'package:mockito/mockito.dart'; // Import mockito for mocking
 
-import 'package:gatepass_app/main.dart';
+// Create mock classes for AuthService and ApiClient
+class MockSharedPreferences extends Mock implements SharedPreferences {}
+class MockAuthService extends Mock implements AuthService {}
+class MockApiClient extends Mock implements ApiClient {}
+
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const GatePassApp());
+  // Group tests related to your main application widget
+  group('MyApp widget tests', () {
+    // Setup mocks before each test
+    late MockSharedPreferences mockSharedPreferences;
+    late MockAuthService mockAuthService;
+    late MockApiClient mockApiClient;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    setUp(() {
+      mockSharedPreferences = MockSharedPreferences();
+      mockAuthService = MockAuthService();
+      mockApiClient = MockApiClient();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      // Stub the isLoggedIn method to return true for initial tests,
+      // simulating a logged-in state or handling the FutureBuilder.
+      // You might want to test both logged-in and logged-out states.
+      when(mockAuthService.isLoggedIn()).thenAnswer((_) async => true);
+      // Stub other methods if they are called directly in MyApp or initial screens
+      when(mockAuthService.getAccessToken()).thenAnswer((_) async => 'mock_token');
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    testWidgets('MyApp renders correctly', (WidgetTester tester) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(
+        MyApp(
+          authService: mockAuthService,
+          apiClient: mockApiClient,
+        ),
+      );
+
+      // Verify that the CircularProgressIndicator is shown initially (due to FutureBuilder)
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Allow the FutureBuilder to complete
+      await tester.pumpAndSettle();
+
+      // After settling, it should navigate to HomeScreen because isLoggedIn returns true.
+      // Verify that HomeScreen (or a widget specific to HomeScreen like an AppBar title) is present.
+      expect(find.text('Gate Pass System'), findsOneWidget); // Assuming your AppBar title in HomeScreen is 'Gate Pass System'
+      expect(find.byType(BottomNavigationBar), findsOneWidget); // Expect the bottom navigation bar
+    });
+
+    // You can add more specific tests here, for example:
+    // testWidgets('MyApp navigates to LoginScreen if not logged in', (WidgetTester tester) async {
+    //   when(mockAuthService.isLoggedIn()).thenAnswer((_) async => false); // Mock not logged in
+    //
+    //   await tester.pumpWidget(
+    //     MyApp(
+    //       authService: mockAuthService,
+    //       apiClient: mockApiClient,
+    //     ),
+    //   );
+    //
+    //   await tester.pumpAndSettle();
+    //
+    //   expect(find.text('Login'), findsOneWidget); // Assuming LoginScreen has a 'Login' title
+    //   expect(find.byType(TextField), findsNWidgets(2)); // Expect username and password fields
+    // });
   });
 }

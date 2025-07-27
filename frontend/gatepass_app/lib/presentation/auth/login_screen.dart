@@ -1,4 +1,4 @@
-// File: lib/presentation/login/login_screen.dart
+// File: lib/presentation/auth/login_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
@@ -6,166 +6,212 @@ import 'package:gatepass_app/services/auth_service.dart';
 import 'package:gatepass_app/presentation/home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AuthService authService;
+  final ApiClient apiClient;
+
+  const LoginScreen({
+    super.key,
+    required this.authService,
+    required this.apiClient,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  
-  // These should ideally be managed by a global state management solution
-  // but for now, we'll instantiate them here and pass them down.
-  late ApiClient _apiClient;
-  late AuthService _authService;
+  String? _errorMessage;
+
+  late final AuthService _authService;
+  late final ApiClient _apiClient;
 
   @override
   void initState() {
     super.initState();
-    _apiClient = ApiClient(); // Create ApiClient instance
-    _authService = AuthService(_apiClient); // Pass ApiClient to AuthService
-    // The AuthService constructor now ensures apiClient.setAuthService(this) is called.
+    _authService = widget.authService;
+    _apiClient = widget.apiClient;
   }
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  void _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+    final username = _usernameController.text;
+    final password = _passwordController.text;
 
-      String username = _usernameController.text;
-      String password = _passwordController.text;
+    final result = await _authService.login(username, password);
 
-      final result = await _authService.login(username, password);
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (result['success']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'])),
-          );
-          // Pass the authenticated apiClient and authService instances to HomeScreen
+    setState(() {
+      _isLoading = false;
+      if (result['success']) {
+        if (mounted) {
+          // Check if the widget is still in the tree
+          // Navigate to HomeScreen on successful login
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => HomeScreen(
-                apiClient: _apiClient,
-                authService: _authService,
-              ),
+              builder: (context) =>
+                  HomeScreen(apiClient: _apiClient, authService: _authService),
             ),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${result['message']}')),
-          );
         }
+      } else {
+        _errorMessage = result['message'];
       }
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    // Determine screen width to adjust the maximum width of the login card
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth > 600
+        ? 400.0
+        : screenWidth * 0.9; // Max 400px or 90% of screen width
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      // AppBar removed for a cleaner, full-screen login experience
+      // If you want an AppBar, you can uncomment it, but typically login screens
+      // don't have one unless it has specific actions (e.g., "back" button)
+      // appBar: AppBar(
+      //   title: const Text('Login'),
+      // ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox( // Constrain the card's width for larger screens
-            constraints: const BoxConstraints(
-              maxWidth: 400, // Max width of the login card
-            ),
-            child: Card( // <--- WRAP CONTENT IN A CARD
-              // The CardThemeData from main.dart will apply elevation, shape, etc.
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 24.0,
+          ), // Padding around the scrollable content
+          child: ConstrainedBox(
+            // Constrain the width of the card on larger screens
+            constraints: BoxConstraints(maxWidth: cardWidth),
+            child: Card(
+              elevation: 8, // Increased elevation for a more prominent look
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  16,
+                ), // Slightly more rounded corners
+              ),
               child: Padding(
-                padding: const EdgeInsets.all(32.0), // Padding inside the card
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min, // Make column take minimum space
-                    children: <Widget>[
-                      Icon(
-                        Icons.vpn_key_rounded,
-                        size: 100, // Slightly smaller icon within the card
-                        color: colorScheme.primary,
+                padding: const EdgeInsets.all(
+                  32.0,
+                ), // Increased padding inside the card
+                child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min, // Make column only take needed space
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // --- Login Logo (now inside the card) ---
+                    const Icon(
+                      Icons.lock_open_rounded,
+                      size: 80, // Slightly smaller icon, fits better
+                      color: Colors.blueGrey,
+                    ),
+                    const SizedBox(height: 24), // Spacing after the icon
+                    // --- Title / Welcome Text ---
+                    Text(
+                      'Welcome Back!',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey.shade700,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sign in to continue to your Gate Pass account',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
                       ),
-                      const SizedBox(height: 32), // Adjusted spacing
-
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your username';
-                          }
-                          return null;
-                        },
+                    ),
+                    const SizedBox(height: 32), // More space before text fields
+                    // --- Username Field ---
+                    TextField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Username',
+                        hintText: 'Enter your username',
+                        prefixIcon: Icon(Icons.person),
                       ),
-                      const SizedBox(height: 16), // Adjusted spacing
-
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
-                          prefixIcon: Icon(Icons.lock),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          return null;
-                        },
+                      keyboardType: TextInputType.text,
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ), // Adjusted spacing between fields
+                    // --- Password Field ---
+                    TextField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your password',
+                        prefixIcon: Icon(Icons.lock),
                       ),
-                      const SizedBox(height: 24), // Spacing before button
-
-                      _isLoading
-                          ? CircularProgressIndicator(
-                              color: colorScheme.primary,
-                            )
-                          : SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _login,
-                                child: const Text(
-                                  'Login',
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                              ),
-                            ),
-                      const SizedBox(height: 16), // Adjusted spacing
-
-                      TextButton(
-                        onPressed: () {
-                          print('Navigate to Registration');
-                        },
+                      obscureText: true,
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ), // Spacing before error message/button
+                    // --- Error Message ---
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
-                          'Don\'t have an account? Register here.',
-                          style: TextStyle(color: colorScheme.secondary),
+                          _errorMessage!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ],
-                  ),
+
+                    // --- Login Button ---
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _login,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ), // Make button taller
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            )
+                          : const Text('Login'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // --- Forgot Password Button ---
+                    TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Forgot Password? Feature not implemented yet.',
+                            ),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary, // Use primary color
+                      ),
+                      child: const Text('Forgot Password?'),
+                    ),
+                    // Optional: Add a "Don't have an account?" text and Sign Up button here
+                  ],
                 ),
               ),
             ),
@@ -173,5 +219,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

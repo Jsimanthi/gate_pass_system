@@ -4,64 +4,47 @@ import 'package:flutter/material.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
-import 'package:gatepass_app/presentation/home/dashboard_overview_screen.dart';
+import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.dart'; // Corrected import
 import 'package:gatepass_app/presentation/my_passes/my_passes_screen.dart';
 
-// Placeholder for GatePassListScreen (can be moved to its own file later)
-// This screen doesn't require ApiClient/AuthService directly yet, but if it did,
-// you would follow the same pattern as DashboardOverviewScreen.
-class GatePassListScreen extends StatelessWidget {
-  const GatePassListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const <Widget>[
-          Icon(Icons.list_alt, size: 80, color: Colors.blueGrey),
-          SizedBox(height: 20),
-          Text(
-            'Gate Passes',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 10),
-          Text(
-            'List of all gate passes (pending, approved, rejected) will be displayed here.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Placeholder for ProfileScreen (can be moved to its own file later)
-// This screen doesn't require ApiClient/AuthService directly yet, but if it did,
-// you would follow the same pattern as DashboardOverviewScreen.
+// Placeholder for ProfileScreen - now accepts AuthService
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final AuthService authService; // Added authService
+
+  const ProfileScreen({super.key, required this.authService}); // Required authService
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const <Widget>[
-          Icon(Icons.person, size: 80, color: Colors.blueGrey),
-          SizedBox(height: 20),
-          Text(
+        children: <Widget>[
+          const Icon(Icons.person, size: 80, color: Colors.blueGrey),
+          const SizedBox(height: 20),
+          const Text(
             'User Profile',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 10),
-          Text(
+          const SizedBox(height: 10),
+          const Text(
             'Manage your profile settings.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          const SizedBox(height: 20),
+          // Example: Display current user or logout button here using authService
+          ElevatedButton(
+            onPressed: () async {
+              await authService.logout();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginScreen(authService: authService, apiClient: ApiClient('', authService))), // Recreate LoginScreen with dependencies
+                  (Route<dynamic> route) => false,
+                );
+              }
+            },
+            child: const Text('Logout from Profile'),
           ),
         ],
       ),
@@ -70,7 +53,6 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class HomeScreen extends StatefulWidget {
-  // Add ApiClient and AuthService as parameters to the constructor
   final ApiClient apiClient;
   final AuthService authService;
 
@@ -87,13 +69,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0; // Index for the BottomNavigationBar
 
-  // Declare _apiClient and _authService to be assigned from widget properties
   late final ApiClient _apiClient;
   late final AuthService _authService;
 
-  // List of widgets (screens) to display in the body of the Scaffold
-  // These now accept apiClient and authService
-  late final List<Widget> _widgetOptions;
+  late final List<Widget> _widgetOptions; // List of screens for the navigation
 
   @override
   void initState() {
@@ -103,10 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _widgetOptions = <Widget>[
       DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
-      // GatePassListScreen doesn't currently need them, but if it fetches data,
-      // it would be: GatePassListScreen(apiClient: _apiClient, authService: _authService),
-      GatePassListScreen(),
-      ProfileScreen(), // Same for ProfileScreen
+      MyPassesScreen(apiClient: _apiClient, authService: _authService), // Pass required dependencies
+      ProfileScreen(authService: _authService), // Pass required dependency
     ];
   }
 
@@ -121,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       // Use pushAndRemoveUntil to clear the stack and go to LoginScreen
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => LoginScreen(apiClient: _apiClient, authService: _authService)),
         (Route<dynamic> route) => false,
       );
     }
@@ -148,8 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Dashboard',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.description), // Or Icons.list_alt
-            label: 'Gate Passes',
+            icon: Icon(Icons.description), // Icon for My Passes
+            label: 'My Passes',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

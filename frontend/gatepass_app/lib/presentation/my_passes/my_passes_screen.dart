@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
+import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class MyPassesScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -30,47 +32,50 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
     super.initState();
     _apiClient = widget.apiClient;
     _authService = widget.authService;
-    _fetchMyGatePasses();
+    _fetchMyGatePasses(); // Initiate API call when screen initializes
+  }
+
+  // Helper function to extract results from paginated API response
+  List<Map<String, dynamic>> _extractResults(dynamic response) {
+    debugPrint('DEBUG: _extractResults received response: $response'); // Debug print
+    if (response is Map<String, dynamic> &&
+        response.containsKey('results') &&
+        response['results'] is List) {
+      debugPrint('DEBUG: Extracting results from paginated response.'); // Debug print
+      return List<Map<String, dynamic>>.from(response['results']);
+    } else if (response is List) {
+      // If the API directly returns a list (no pagination, less common for DRF)
+      debugPrint('DEBUG: Response is a direct list.'); // Debug print
+      return List<Map<String, dynamic>>.from(response);
+    }
+    // Log a warning if the response format is unexpected
+    debugPrint(
+      'Warning: API response not in expected paginated or list format: $response',
+    );
+    return []; // Return empty list to avoid errors if format is wrong
   }
 
   Future<void> _fetchMyGatePasses() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _errorMessage = null; // Clear previous errors
     });
     try {
-      // Replace with your actual API endpoint for fetching user's gate passes
-      // Example: await _apiClient.get('/api/my-gatepasses/');
-      // For now, simulate some data
-      await Future.delayed(const Duration(seconds: 1));
-      _myGatePasses = [
-        {
-          'id': 1,
-          'person_name': 'John Doe',
-          'purpose': 'Visitor',
-          'status': 'Approved',
-        },
-        {
-          'id': 2,
-          'person_name': 'Jane Smith',
-          'purpose': 'Delivery',
-          'status': 'Pending',
-        },
-        {
-          'id': 3,
-          'person_name': 'Alice Johnson',
-          'purpose': 'Maintenance',
-          'status': 'Rejected',
-        },
-      ];
+      // Actual API call to your Django backend
+      final response = await _apiClient.get('/api/gatepass/');
+      debugPrint('DEBUG: API call to /api/gatepass/ returned. Processing results.'); // Debug print
+      _myGatePasses = _extractResults(response); // Process the response
+      debugPrint('DEBUG: _myGatePasses after extraction: $_myGatePasses'); // Debug print
+
     } catch (e) {
+      // Catch any errors during API call or data processing
       setState(() {
         _errorMessage = 'Error loading your gate passes: $e';
-        print('MyPasses API Fetch Error: $_errorMessage');
+        debugPrint('MyPasses API Fetch Error: $_errorMessage'); // Print error to console
       });
     } finally {
       setState(() {
-        _isLoading = false;
+        _isLoading = false; // Stop loading indicator
       });
     }
   }
@@ -95,7 +100,7 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _fetchMyGatePasses,
+                onPressed: _fetchMyGatePasses, // Allow retry on error
                 child: const Text('Retry'),
               ),
             ],
@@ -126,6 +131,7 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       );
     }
 
+    // Display the list of gate passes
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemCount: _myGatePasses.length,
@@ -134,31 +140,42 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8.0),
           elevation: 3,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: ListTile(
             contentPadding: const EdgeInsets.all(16.0),
-            leading: _getStatusIcon(pass['status']),
+            leading: _getStatusIcon(pass['status']), // Get icon based on status
             title: Text(
-              'Purpose: ${pass['purpose']}',
+              // Access nested 'name' property for purpose with null checks
+              'Purpose: ${pass['purpose'] != null ? pass['purpose']['name'] ?? 'N/A' : 'N/A'}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Applicant: ${pass['person_name']}'),
-                Text('Status: ${pass['status']}'),
-                // Add more details like entry/exit time, gate, etc. as available
+                Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
+                // Access nested 'name' property for gate with null checks
+                Text('Gate: ${pass['gate'] != null ? pass['gate']['name'] ?? 'N/A' : 'N/A'}'),
+                Text('Status: ${pass['status'] ?? 'N/A'}'),
+                // Conditionally display vehicle and driver if they exist and are not null
+                if (pass['vehicle'] != null && pass['vehicle']['vehicle_number'] != null)
+                  Text('Vehicle: ${pass['vehicle']['vehicle_number']}'),
+                if (pass['driver'] != null && pass['driver']['name'] != null)
+                  Text('Driver: ${pass['driver']['name']}'),
+                // Format and display entry/exit times using intl package with null checks
+                Text('Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}'),
+                Text('Exit: ${pass['exit_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['exit_time'])) : 'N/A'}'),
+                Text('Created At: ${pass['created_at'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['created_at'])) : 'N/A'}'),
+                // Conditionally display created_by and approved_by usernames with null checks
+                if (pass['created_by'] != null && pass['created_by']['username'] != null)
+                  Text('Created By: ${pass['created_by']['username']}'),
+                if (pass['approved_by'] != null && pass['approved_by']['username'] != null)
+                  Text('Approved By: ${pass['approved_by']['username']}'),
               ],
             ),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
-              // TODO: Navigate to Gate Pass detail screen
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Tapped on Gate Pass ID: ${pass['id']}'),
-                ),
+                SnackBar(content: Text('Tapped on Gate Pass ID: ${pass['id']}')),
               );
             },
           ),
@@ -167,14 +184,18 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
     );
   }
 
-  Icon _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
+  // Helper function to get status icon based on status string
+  Icon _getStatusIcon(String? status) {
+    if (status == null) return const Icon(Icons.info_outline, color: Colors.grey);
+    switch (status.toUpperCase()) { // Use toUpperCase to match Django's constants
+      case 'APPROVED':
         return const Icon(Icons.check_circle, color: Colors.green);
-      case 'pending':
+      case 'PENDING':
         return const Icon(Icons.hourglass_empty, color: Colors.orange);
-      case 'rejected':
+      case 'REJECTED':
         return const Icon(Icons.cancel, color: Colors.red);
+      case 'CANCELLED': // Handle CANCELLED status if you use it
+        return const Icon(Icons.remove_circle_outline, color: Colors.blueGrey);
       default:
         return const Icon(Icons.info_outline, color: Colors.grey);
     }
