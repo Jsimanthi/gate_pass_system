@@ -1,20 +1,27 @@
+// File: lib/services/auth_service.dart
+
 import 'dart:convert';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final ApiClient _apiClient;
+  ApiClient _apiClient; // Make it non-nullable again
   static const String _accessTokenKey = 'accessToken';
   static const String _refreshTokenKey = 'refreshToken';
 
-  AuthService(this._apiClient);
+  AuthService(this._apiClient) {
+    // When AuthService is created, set itself in the ApiClient
+    // This handles the circular dependency
+    _apiClient.setAuthService(this);
+  }
 
   // --- Login Method ---
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
       final response = await _apiClient.post(
-        'token/', // Assuming your JWT login endpoint is /api/token/
+        '/api/token/',
         {'username': username, 'password': password},
+        customToken: '', // Ensure no token is sent for the login itself
       );
 
       if (response.containsKey('access') && response.containsKey('refresh')) {
@@ -26,7 +33,15 @@ class AuthService {
         return {'success': false, 'message': 'Invalid response from server'};
       }
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      String errorMessage = 'An unknown error occurred: ${e.toString()}';
+      if (e.toString().contains('401')) {
+        errorMessage = 'Invalid credentials. Please try again.';
+      } else if (e.toString().contains('400')) {
+        errorMessage = 'Bad request. Check username/password format or server logs.';
+      } else if (e.toString().contains('Failed host lookup')) {
+        errorMessage = 'Cannot connect to server. Check your network or server address.';
+      }
+      return {'success': false, 'message': errorMessage};
     }
   }
 
@@ -64,6 +79,7 @@ class AuthService {
   //     final response = await _apiClient.post(
   //       'token/refresh/', // Assuming your JWT refresh endpoint
   //       {'refresh': refreshToken},
+  //       customToken: '', // No token needed for refresh request itself
   //     );
   //
   //     if (response.containsKey('access')) {

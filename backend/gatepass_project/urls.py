@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/drivers/', include('apps.drivers.urls')),
     path('api/gatepass/', include('apps.gatepass.urls')),
     path('api/gate-operations/', include('apps.gate_operations.urls')),
+    path('api/core-data/', include('apps.core_data.urls')), 
     # path('api/reports/', include('apps.reports.urls')),
 ]
 

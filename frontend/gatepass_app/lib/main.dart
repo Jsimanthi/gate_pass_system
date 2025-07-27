@@ -1,3 +1,5 @@
+// File: lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/presentation/home/home_screen.dart';
@@ -18,10 +20,18 @@ class GatePassApp extends StatefulWidget {
 class _GatePassAppState extends State<GatePassApp> {
   late Future<bool> _isLoggedInFuture;
 
+  // Declare ApiClient and AuthService here to be used throughout the app
+  late ApiClient _apiClient;
+  late AuthService _authService;
+
   @override
   void initState() {
     super.initState();
-    _isLoggedInFuture = AuthService(ApiClient()).isLoggedIn();
+    _apiClient = ApiClient(); // Instantiate ApiClient once
+    _authService = AuthService(_apiClient); // Instantiate AuthService once, passing the ApiClient
+    // The AuthService constructor will set itself in ApiClient to handle circular dependency.
+
+    _isLoggedInFuture = _authService.isLoggedIn(); // Check login status using this instance
   }
 
   @override
@@ -74,9 +84,22 @@ class _GatePassAppState extends State<GatePassApp> {
               ),
             );
           } else {
+            if (snapshot.hasError) {
+              // Handle any errors during login check (e.g., SharedPreferences error)
+              return Scaffold(
+                body: Center(
+                  child: Text('Error checking login status: ${snapshot.error}'),
+                ),
+              );
+            }
             if (snapshot.hasData && snapshot.data == true) {
-              return const HomeScreen();
+              // If logged in, pass the existing _apiClient and _authService instances to HomeScreen
+              return HomeScreen(
+                apiClient: _apiClient,
+                authService: _authService,
+              );
             } else {
+              // If not logged in, go to LoginScreen. LoginScreen will handle its own ApiClient/AuthService.
               return const LoginScreen();
             }
           }

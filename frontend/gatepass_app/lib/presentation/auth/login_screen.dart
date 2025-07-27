@@ -1,3 +1,5 @@
+// File: lib/presentation/login/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
@@ -15,12 +17,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  
+  // These should ideally be managed by a global state management solution
+  // but for now, we'll instantiate them here and pass them down.
+  late ApiClient _apiClient;
   late AuthService _authService;
 
   @override
   void initState() {
     super.initState();
-    _authService = AuthService(ApiClient());
+    _apiClient = ApiClient(); // Create ApiClient instance
+    _authService = AuthService(_apiClient); // Pass ApiClient to AuthService
+    // The AuthService constructor now ensures apiClient.setAuthService(this) is called.
   }
 
   @override
@@ -50,8 +58,14 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(result['message'])),
           );
+          // Pass the authenticated apiClient and authService instances to HomeScreen
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                apiClient: _apiClient,
+                authService: _authService,
+              ),
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

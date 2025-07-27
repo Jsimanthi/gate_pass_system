@@ -8,4 +8,4 @@ from .serializers import DriverSerializer
 class DriverViewSet(viewsets.ModelViewSet):
     queryset = Driver.objects.all()
     serializer_class = DriverSerializer
-    permission_classes = [permissions.IsAdminUser] # Only Admin/Staff users can manage drivers
+    permission_classes = [permissions.IsAuthenticated] # Only authenticated users can manage drivers

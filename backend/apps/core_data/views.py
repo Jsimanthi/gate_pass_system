@@ -11,16 +11,16 @@ from .serializers import GateSerializer, PurposeSerializer, VehicleTypeSerialize
 class GateViewSet(viewsets.ModelViewSet):
     queryset = Gate.objects.all()
     serializer_class = GateSerializer
-    permission_classes = [permissions.IsAdminUser] # Only Admin/Staff users can manage gates
+    permission_classes = [permissions.IsAuthenticated] # Only authenticated users can manage gates
 
 # Purpose ViewSet - Accessible only by Admins/Staff
 class PurposeViewSet(viewsets.ModelViewSet):
     queryset = Purpose.objects.all()
     serializer_class = PurposeSerializer
-    permission_classes = [permissions.IsAdminUser] # Only Admin/Staff users can manage purposes
+    permission_classes = [permissions.IsAuthenticated] # Only authenticated users can manage purposes
 
 # VehicleType ViewSet - Accessible only by Admins/Staff
 class VehicleTypeViewSet(viewsets.ModelViewSet):
     queryset = VehicleType.objects.all()
     serializer_class = VehicleTypeSerializer
-    permission_classes = [permissions.IsAdminUser] # Only Admin/Staff users can manage vehicle types
+    permission_classes = [permissions.IsAuthenticated] # Only authenticated users can manage vehicle types

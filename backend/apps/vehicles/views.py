@@ -8,4 +8,4 @@ from .serializers import VehicleSerializer
 class VehicleViewSet(viewsets.ModelViewSet):
     queryset = Vehicle.objects.all()
     serializer_class = VehicleSerializer
-    permission_classes = [permissions.IsAdminUser] # Only Admin/Staff users can manage vehicles
+    permission_classes = [permissions.IsAuthenticated] # Only authenticated users can manage vehicles
