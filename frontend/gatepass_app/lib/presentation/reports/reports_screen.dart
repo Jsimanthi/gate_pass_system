@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
-import 'dart:convert';
 
 class ReportsScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -18,8 +17,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _summary = widget.apiClient.get('reports/logs/summary/');
-    _logs = widget.apiClient.get('reports/logs/');
+    _summary = widget.apiClient.get('reports/logs/summary/').then((data) => data as Map<String, dynamic>);
+    _logs = widget.apiClient.get('reports/logs/').then((data) => data as List<dynamic>);
   }
 
   @override
