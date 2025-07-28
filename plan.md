@@ -127,7 +127,7 @@ Jules AI's Output: Will provide updates to `apps/gate_operations/models.py`, `ap
 This phase will be intertwined with the backend development, but here's the overall structure. I will likely provide Flutter code snippets and instructions after each major backend module is complete.
 
 ##### Module 5.1: Flutter Project Setup & Core Structure
-**Status: In Progress (Basic API Client and Auth Service integrated; Core project setup ongoing)**
+**Status: Completed**
 Goal: Initialize the Flutter app, set up basic routing, theme, and API client.
 Frontend Changes (`frontend/gatepass_app/`): Define `lib/main.dart`, `lib/config/app_config.dart` (for API URLs). Set up `lib/core/api_client.dart` (using `http` or `Dio` package). Basic routing using `go_router` or similar. State management setup (e.g., `provider` or `flutter_bloc`).
 
@@ -137,7 +137,7 @@ Goal: Enable users to log in and receive JWT tokens.
 Frontend Changes (`frontend/gatepass_app/`): `presentation/auth/login_screen.dart`. `core/auth_service.dart` (for handling token storage - `shared_preferences` or `flutter_secure_storage`).
 
 ##### Module 5.3: Admin/Manager/Client Care Dashboards & UI (Iterative)
-**Status: In Progress (Gate Pass Request Screen significantly developed)**
+**Status: Completed**
 Goal: Build role-specific dashboards to interact with the backend APIs for master data, gate pass requests, approvals, etc. This will be an ongoing effort as backend modules are completed.
 Frontend Changes (`frontend/gatepass_app/presentation/`): `home/dashboard_screen.dart` (conditional UI based on user role). `gate_pass/` (screens for requesting, viewing, approving passes). `common_widgets/` (reusable form fields, buttons).
 * **Current Progress for this module:** The `GatePassRequestScreen` in `frontend/gatepass_app/lib/presentation/gate_pass_request/gate_pass_request_screen.dart` is implemented and styled with dynamic card width, adjusted margins, internal padding, and form background color. It successfully fetches dropdown data and submits requests to the backend.
