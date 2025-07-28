@@ -1,4 +1,4 @@
-import 'package.flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'dart:convert';
 
