@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/presentation/home/home_screen.dart';
+import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -101,6 +102,8 @@ class MyApp extends StatelessWidget {
             LoginScreen(authService: authService, apiClient: apiClient),
         '/home': (context) =>
             HomeScreen(apiClient: apiClient, authService: authService),
+        '/reports': (context) =>
+            ReportsScreen(apiClient: apiClient),
       },
     );
   }
