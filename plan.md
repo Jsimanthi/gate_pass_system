@@ -117,7 +117,7 @@ Frontend Impact: Security personnel app with a QR scanner interface.
 Jules AI's Output: Will provide code for `apps/gate_operations/views.py`, `apps/gate_operations/urls.py`, and `gatepass_core/settings/base.py` (`INSTALLED_APPS`).
 
 ##### Module 4.2: Gate Logging
-**Status: To Be Started (Backend)**
+**Status: Completed**
 Goal: Record every gate activity (scan attempt, entry, exit, manual override) with details.
 Backend Changes (`backend/`): Extend `apps/gate_operations` with a `GateLog` model (`timestamp`, `gate_pass` (FK), `action` (entry/exit/scan_attempt), `status` (success/failure), `reason` (for failure), `security_personnel` (FK to `CustomUser`)). Integrate logging into the scanning view. Register in Django Admin.
 Frontend Impact: No direct UI, but this data will feed into reports.
