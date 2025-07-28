@@ -36,7 +36,7 @@ class MyHomePage extends StatelessWidget {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const QRScannerScreen(),
+                builder: (context) => const QrScannerScreen(),
               ),
             );
             if (result != null) {
