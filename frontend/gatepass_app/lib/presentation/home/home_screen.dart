@@ -4,53 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
-import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.dart'; // Corrected import
+import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.dart';
 import 'package:gatepass_app/presentation/my_passes/my_passes_screen.dart';
-
-// Placeholder for ProfileScreen - now accepts AuthService
-class ProfileScreen extends StatelessWidget {
-  final AuthService authService; // Added authService
-
-  const ProfileScreen({super.key, required this.authService}); // Required authService
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const Icon(Icons.person, size: 80, color: Colors.blueGrey),
-          const SizedBox(height: 20),
-          const Text(
-            'User Profile',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Manage your profile settings.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          const SizedBox(height: 20),
-          // Example: Display current user or logout button here using authService
-          ElevatedButton(
-            onPressed: () async {
-              await authService.logout();
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => LoginScreen(authService: authService, apiClient: ApiClient('', authService))), // Recreate LoginScreen with dependencies
-                  (Route<dynamic> route) => false,
-                );
-              }
-            },
-            child: const Text('Logout from Profile'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart'; // NEW: Import GatePassRequestScreen
+import 'package:gatepass_app/presentation/profile/profile_screen.dart'; // NEW: Import the external ProfileScreen
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -82,8 +39,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _widgetOptions = <Widget>[
       DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
-      MyPassesScreen(apiClient: _apiClient, authService: _authService), // Pass required dependencies
-      ProfileScreen(authService: _authService), // Pass required dependency
+      MyPassesScreen(apiClient: _apiClient, authService: _authService),
+      GatePassRequestScreen(
+        apiClient: _apiClient,
+        authService: _authService,
+      ), // NEW: Add GatePassRequestScreen
+      ProfileScreen(
+        apiClient: _apiClient,
+        authService: _authService,
+      ), // NEW: Use the external ProfileScreen
     ];
   }
 
@@ -98,7 +62,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       // Use pushAndRemoveUntil to clear the stack and go to LoginScreen
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen(apiClient: _apiClient, authService: _authService)),
+        MaterialPageRoute(
+          builder: (context) =>
+              LoginScreen(apiClient: _apiClient, authService: _authService),
+        ),
         (Route<dynamic> route) => false,
       );
     }
@@ -117,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _widgetOptions.elementAt(_selectedIndex), // Display the selected screen
+      body: _widgetOptions.elementAt(
+        _selectedIndex,
+      ), // Display the selected screen
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -129,13 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'My Passes',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            // NEW: Add Request Pass item
+            icon: Icon(Icons.add_box),
+            label: 'Request Pass',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).colorScheme.primary, // Use theme color
+        selectedItemColor: Theme.of(
+          context,
+        ).colorScheme.primary, // Use theme color
+        unselectedItemColor: Colors.grey, // Ensure unselected items are visible
         onTap: _onItemTapped,
+        type: BottomNavigationBarType
+            .fixed, // Use fixed type if you have more than 3 items
       ),
     );
   }

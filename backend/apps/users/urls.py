@@ -1,5 +1,8 @@
+# users/urls.py
 from django.urls import path
+from .views import CurrentUserView
 
 urlpatterns = [
-    # URLs for the users app will be added here later
+    # ... existing URLs
+    path('me/', CurrentUserView.as_view(), name='current_user'),
 ]
