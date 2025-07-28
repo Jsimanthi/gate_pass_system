@@ -143,9 +143,9 @@ Frontend Changes (`frontend/gatepass_app/presentation/`): `home/dashboard_screen
 * **Current Progress for this module:** The `GatePassRequestScreen` in `frontend/gatepass_app/lib/presentation/gate_pass_request/gate_pass_request_screen.dart` is implemented and styled with dynamic card width, adjusted margins, internal padding, and form background color. It successfully fetches dropdown data and submits requests to the backend.
 
 ##### Module 5.4: Security Personnel App UI (QR Scanner)
-**Status: To Be Started**
+**Status: In Progress**
 Goal: Build the dedicated UI for security personnel to scan QR codes and see verification results.
-Frontend Changes (`frontend/gatepass_app/presentation/security/`): `qr_scanner_screen.dart` (using `mobile_scanner` or `barcode_scan2`). Display real-time verification feedback.
+Frontend Changes (`frontend/gatepass_app/presentation/security/`): `qr_scanner_screen.dart` (using `mobile_scanner` or `barcode_scan2`). Display real-time verification feedback. A button to access this screen has been added to the main navigation.
 
 #### Phase 6: Reporting & Analytics
 ##### Module 6.1: Backend Reporting Endpoints

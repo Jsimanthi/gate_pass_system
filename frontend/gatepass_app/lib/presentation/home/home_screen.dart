@@ -8,6 +8,7 @@ import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.da
 import 'package:gatepass_app/presentation/my_passes/my_passes_screen.dart';
 import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart'; // NEW: Import GatePassRequestScreen
 import 'package:gatepass_app/presentation/profile/profile_screen.dart'; // NEW: Import the external ProfileScreen
+import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -48,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
         apiClient: _apiClient,
         authService: _authService,
       ), // NEW: Use the external ProfileScreen
+      QrScannerScreen(apiClient: _apiClient),
     ];
   }
 
@@ -103,6 +105,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Request Pass',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'Scan QR',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(
