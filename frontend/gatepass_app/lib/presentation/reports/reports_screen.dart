@@ -18,7 +18,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   void initState() {
     super.initState();
     _summary = widget.apiClient.get('/api/reports/logs/summary/').then((data) => data as Map<String, dynamic>);
-    _logs = widget.apiClient.get('/api/reports/logs/').then((data) => data as List<dynamic>);
+    _logs = widget.apiClient.get('/api/reports/logs/').then((data) => (data as Map<String, dynamic>)['results'] as List<dynamic>);
   }
 
   @override
