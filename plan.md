@@ -149,9 +149,9 @@ Frontend Changes (`frontend/gatepass_app/presentation/security/`): `qr_scanner_s
 
 #### Phase 6: Reporting & Analytics
 ##### Module 6.1: Backend Reporting Endpoints
-**Status: To Be Started**
+**Status: In Progress**
 Goal: Provide API endpoints to query and filter gate log data for reporting.
-Backend Changes (`backend/apps/reports/`): Create `apps/reports` Django app. Views for filtered lists of `GateLog` entries, summary statistics (e.g., vehicles per day, top destinations).
+Backend Changes (`backend/apps/reports/`): Created `apps/reports` Django app. Implemented views for listing all `GateLog` entries and providing summary statistics. Defined serializers and URL patterns for the new endpoints.
 Frontend Impact: UI to select date ranges, filters, and display reports.
 
 #### Phase 7: Refinement, Testing & Deployment Preparation
