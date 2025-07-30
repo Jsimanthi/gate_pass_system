@@ -31,7 +31,7 @@ class DriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver
         # Ensure these fields match your Driver model's actual fields for display
-        fields = ['id', 'name', 'phone_number']
+        fields = ['id', 'name', 'contact_details']
 
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
