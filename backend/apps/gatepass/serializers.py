@@ -99,12 +99,19 @@ class GatePassSerializer(serializers.ModelSerializer):
     # The default ModelSerializer create method will often handle this automatically if field names match,
     # but explicit handling is safer especially with 'source' or custom logic.
     def create(self, validated_data):
-        # The PrimaryKeyRelatedFields (purpose_id, gate_id, etc.)
-        # automatically provide the related model instances to `validated_data`
-        # under the names 'purpose', 'gate', etc. (due to source='purpose' or default mapping).
-        # So we can just call super().create directly.
-        # Ensure `perform_create` in your ViewSet sets `created_by`.
-        return super().create(validated_data)
+        purpose_data = validated_data.pop('purpose_id')
+        gate_data = validated_data.pop('gate_id')
+        vehicle_data = validated_data.pop('vehicle_id', None)
+        driver_data = validated_data.pop('driver_id', None)
+
+        gate_pass = GatePass.objects.create(
+            purpose=purpose_data,
+            gate=gate_data,
+            vehicle=vehicle_data,
+            driver=driver_data,
+            **validated_data
+        )
+        return gate_pass
 
     def update(self, instance, validated_data):
         # Similar to create, handle PrimaryKeyRelatedFields for updates
