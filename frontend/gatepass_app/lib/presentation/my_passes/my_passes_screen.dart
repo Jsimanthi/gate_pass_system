@@ -5,6 +5,7 @@ import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:flutter/foundation.dart'; // Import for debugPrint
+import 'package:gatepass_app/presentation/my_passes/my_pass_details_screen.dart';
 
 class MyPassesScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -26,6 +27,10 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<Map<String, dynamic>> _myGatePasses = [];
+  List<Map<String, dynamic>> _filteredGatePasses = [];
+  String _selectedStatus = 'All';
+  bool _isSortedByDate = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -65,6 +70,7 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       final response = await _apiClient.get('/api/gatepass/');
       debugPrint('DEBUG: API call to /api/gatepass/ returned. Processing results.'); // Debug print
       _myGatePasses = _extractResults(response); // Process the response
+      _filteredGatePasses = _myGatePasses;
       debugPrint('DEBUG: _myGatePasses after extraction: $_myGatePasses'); // Debug print
 
     } catch (e) {
@@ -82,6 +88,15 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Passes'),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -131,56 +146,72 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       );
     }
 
-    // Display the list of gate passes
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: _myGatePasses.length,
-      itemBuilder: (context, index) {
-        final pass = _myGatePasses[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16.0),
-            leading: _getStatusIcon(pass['status']), // Get icon based on status
-            title: Text(
-              // Access nested 'name' property for purpose with null checks
-              'Purpose: ${pass['purpose'] != null ? pass['purpose']['name'] ?? 'N/A' : 'N/A'}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+    return Column(
+      children: [
+        _buildSearchBar(),
+        _buildFilterBar(),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _fetchMyGatePasses,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: _filteredGatePasses.length,
+              itemBuilder: (context, index) {
+                final pass = _filteredGatePasses[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(color: Theme.of(context).primaryColor, width: 1),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16.0),
+                    leading: _getStatusIcon(pass['status']), // Get icon based on status
+                    title: Text(
+                      // Access nested 'name' property for purpose with null checks
+                      'Purpose: ${pass['purpose'] != null ? pass['purpose']['name'] ?? 'N/A' : 'N/A'}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
+                        // Access nested 'name' property for gate with null checks
+                        Text('Gate: ${pass['gate'] != null ? pass['gate']['name'] ?? 'N/A' : 'N/A'}'),
+                        Text('Status: ${pass['status'] ?? 'N/A'}'),
+                        // Conditionally display vehicle and driver if they exist and are not null
+                        if (pass['vehicle'] != null && pass['vehicle']['vehicle_number'] != null)
+                          Text('Vehicle: ${pass['vehicle']['vehicle_number']}'),
+                        if (pass['driver'] != null && pass['driver']['name'] != null)
+                          Text('Driver: ${pass['driver']['name']}'),
+                        // Format and display entry/exit times using intl package with null checks
+                        Text('Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}'),
+                        Text('Exit: ${pass['exit_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['exit_time'])) : 'N/A'}'),
+                        Text('Created At: ${pass['created_at'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['created_at'])) : 'N/A'}'),
+                        // Conditionally display created_by and approved_by usernames with null checks
+                        if (pass['created_by'] != null && pass['created_by']['username'] != null)
+                          Text('Created By: ${pass['created_by']['username']}'),
+                        if (pass['approved_by'] != null && pass['approved_by']['username'] != null)
+                          Text('Approved By: ${pass['approved_by']['username']}'),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyPassDetailsScreen(pass: pass),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
-                // Access nested 'name' property for gate with null checks
-                Text('Gate: ${pass['gate'] != null ? pass['gate']['name'] ?? 'N/A' : 'N/A'}'),
-                Text('Status: ${pass['status'] ?? 'N/A'}'),
-                // Conditionally display vehicle and driver if they exist and are not null
-                if (pass['vehicle'] != null && pass['vehicle']['vehicle_number'] != null)
-                  Text('Vehicle: ${pass['vehicle']['vehicle_number']}'),
-                if (pass['driver'] != null && pass['driver']['name'] != null)
-                  Text('Driver: ${pass['driver']['name']}'),
-                // Format and display entry/exit times using intl package with null checks
-                Text('Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}'),
-                Text('Exit: ${pass['exit_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['exit_time'])) : 'N/A'}'),
-                Text('Created At: ${pass['created_at'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['created_at'])) : 'N/A'}'),
-                // Conditionally display created_by and approved_by usernames with null checks
-                if (pass['created_by'] != null && pass['created_by']['username'] != null)
-                  Text('Created By: ${pass['created_by']['username']}'),
-                if (pass['approved_by'] != null && pass['approved_by']['username'] != null)
-                  Text('Approved By: ${pass['approved_by']['username']}'),
-              ],
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tapped on Gate Pass ID: ${pass['id']}')),
-              );
-            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -199,5 +230,92 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       default:
         return const Icon(Icons.info_outline, color: Colors.grey);
     }
+  }
+
+  Widget _buildFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildFilterButton('All'),
+          _buildFilterButton('APPROVED'),
+          _buildFilterButton('PENDING'),
+          _buildFilterButton('REJECTED'),
+          IconButton(
+            icon: Icon(Icons.sort),
+            onPressed: _sortPasses,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(String status) {
+    return ElevatedButton(
+      onPressed: () => _filterPasses(status),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
+      ),
+      child: Text(status),
+    );
+  }
+
+  void _filterPasses(String status) {
+    setState(() {
+      _selectedStatus = status;
+      if (status == 'All') {
+        _filteredGatePasses = _myGatePasses;
+      } else {
+        _filteredGatePasses = _myGatePasses.where((pass) => pass['status'] == status).toList();
+      }
+    });
+  }
+
+  void _sortPasses() {
+    setState(() {
+      _isSortedByDate = !_isSortedByDate;
+      _filteredGatePasses.sort((a, b) {
+        try {
+          final dateA = DateTime.parse(a['created_at']);
+          final dateB = DateTime.parse(b['created_at']);
+          return _isSortedByDate ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
+        } catch (e) {
+          return 0;
+        }
+      });
+    });
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search by applicant name or vehicle number',
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        onChanged: _searchPasses,
+      ),
+    );
+  }
+
+  void _searchPasses(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredGatePasses = _myGatePasses;
+      } else {
+        _filteredGatePasses = _myGatePasses.where((pass) {
+          final applicantName = pass['person_name']?.toLowerCase() ?? '';
+          final vehicleNumber = pass['vehicle']?['vehicle_number']?.toLowerCase() ?? '';
+          final lowerCaseQuery = query.toLowerCase();
+          return applicantName.contains(lowerCaseQuery) || vehicleNumber.contains(lowerCaseQuery);
+        }).toList();
+      }
+    });
   }
 }
