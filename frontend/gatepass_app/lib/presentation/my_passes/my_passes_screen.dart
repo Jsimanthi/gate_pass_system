@@ -252,12 +252,14 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
   }
 
   Widget _buildFilterButton(String status) {
-    return ElevatedButton(
-      onPressed: () => _filterPasses(status),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
+    return Expanded(
+      child: ElevatedButton(
+        onPressed: () => _filterPasses(status),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
+        ),
+        child: Text(status),
       ),
-      child: Text(status),
     );
   }
 
