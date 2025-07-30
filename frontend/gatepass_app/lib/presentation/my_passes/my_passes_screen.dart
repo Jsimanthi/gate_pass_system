@@ -238,10 +238,10 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildFilterButton('All'),
-          _buildFilterButton('APPROVED'),
-          _buildFilterButton('PENDING'),
-          _buildFilterButton('REJECTED'),
+          _buildFilterButton('All', Icons.all_inclusive),
+          _buildFilterButton('APPROVED', Icons.check_circle),
+          _buildFilterButton('PENDING', Icons.hourglass_empty),
+          _buildFilterButton('REJECTED', Icons.cancel),
           IconButton(
             icon: Icon(Icons.sort),
             onPressed: _sortPasses,
@@ -251,15 +251,11 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
     );
   }
 
-  Widget _buildFilterButton(String status) {
-    return Expanded(
-      child: ElevatedButton(
-        onPressed: () => _filterPasses(status),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
-        ),
-        child: Text(status),
-      ),
+  Widget _buildFilterButton(String status, IconData icon) {
+    return IconButton(
+      onPressed: () => _filterPasses(status),
+      icon: Icon(icon),
+      color: _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
     );
   }
 
