@@ -149,8 +149,8 @@ class ApiClient {
 
   Future<Map<String, dynamic>> verifyQrCode(String qrCode) async {
     final response = await post(
-      'gate-operations/verify/',
-      {'qr_code': qrCode},
+      'api/gate-operations/scan_qr_code/',
+      {'qr_code_data': qrCode},
     );
     return response;
   }

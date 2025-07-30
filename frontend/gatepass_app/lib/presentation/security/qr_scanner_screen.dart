@@ -8,16 +8,16 @@ class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key, required this.apiClient});
 
   @override
-  State<QrScannerScreen> createState() => _QrScannerScreenState();
+  State<QrScannerScreen> createState() => QrScannerScreenState();
 }
 
-class _QrScannerScreenState extends State<QrScannerScreen> {
+class QrScannerScreenState extends State<QrScannerScreen> {
   MobileScannerController controller = MobileScannerController();
   bool _isProcessing = false;
   String? _scanResult;
   String? _verificationResult;
 
-  void _handleScan(String value) async {
+  void handleScan(String value) async {
     setState(() {
       _isProcessing = true;
       _scanResult = value;
@@ -56,7 +56,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                   if (barcodes.isNotEmpty) {
                     final String? code = barcodes.first.rawValue;
                     if (code != null) {
-                      _handleScan(code);
+                      handleScan(code);
                     }
                   }
                 }
