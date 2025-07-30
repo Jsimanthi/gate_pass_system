@@ -15,7 +15,23 @@ import 'package:mockito/mockito.dart'; // Import mockito for mocking
 
 // Create mock classes for AuthService and ApiClient
 class MockSharedPreferences extends Mock implements SharedPreferences {}
-class MockAuthService extends Mock implements AuthService {}
+class MockAuthService extends Mock implements AuthService {
+  @override
+  Future<bool> isLoggedIn() async {
+    return super.noSuchMethod(
+      Invocation.method(#isLoggedIn, []),
+      returnValue: Future.value(false), // Default return value
+    );
+  }
+
+  @override
+  Future<String?> getAccessToken() async {
+    return super.noSuchMethod(
+      Invocation.method(#getAccessToken, []),
+      returnValue: Future.value('fake_token'), // Default return value
+    );
+  }
+}
 class MockApiClient extends Mock implements ApiClient {}
 
 
@@ -23,12 +39,10 @@ void main() {
   // Group tests related to your main application widget
   group('MyApp widget tests', () {
     // Setup mocks before each test
-    late MockSharedPreferences mockSharedPreferences;
     late MockAuthService mockAuthService;
     late MockApiClient mockApiClient;
 
     setUp(() {
-      mockSharedPreferences = MockSharedPreferences();
       mockAuthService = MockAuthService();
       mockApiClient = MockApiClient();
 
