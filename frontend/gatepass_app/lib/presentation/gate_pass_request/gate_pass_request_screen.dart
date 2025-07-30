@@ -180,15 +180,10 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
               : null,
           'entry_time': _entryTimeController.text,
           'exit_time': _exitTimeController.text,
-          'purpose': int.parse(_selectedPurposeId!),
-          'gate': int.parse(_selectedGateId!),
-          'vehicle':
-              _selectedVehicleId != null && _selectedVehicleId!.isNotEmpty
-              ? int.parse(_selectedVehicleId!)
-              : null,
-          'driver': _selectedDriverId != null && _selectedDriverId!.isNotEmpty
-              ? int.parse(_selectedDriverId!)
-              : null,
+          'purpose_id': _selectedPurposeId,
+          'gate_id': _selectedGateId,
+          'vehicle_id': _selectedVehicleId,
+          'driver_id': _selectedDriverId,
           'alcohol_test_required': _alcoholTestRequired,
         };
 
