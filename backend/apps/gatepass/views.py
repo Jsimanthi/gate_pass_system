@@ -26,7 +26,7 @@ class GatePassViewSet(viewsets.ModelViewSet):
         return [permission() for permission in self.permission_classes]
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save(created_by=self.request.user, alcohol_test_required=self.request.data.get('alcohol_test_required', False))
         # Optional: Send a notification that a new gate pass request has been submitted
         # send_mail(
         #     'New Gate Pass Request Submitted',
@@ -86,6 +86,40 @@ class GatePassViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(f"ERROR: Failed to send approval email: {e}")
             # Consider logging this error properly in a production environment
+
+        serializer = self.get_serializer(gate_pass)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def alcohol_test(self, request, pk=None):
+        gate_pass = get_object_or_404(GatePass, pk=pk)
+        if not gate_pass.alcohol_test_required:
+            return Response({"detail": "Alcohol test not required for this gate pass."}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = request.data.get('result')
+        photo = request.data.get('photo')
+
+        if result not in ['pass', 'fail']:
+            return Response({"detail": "Invalid result. Must be 'pass' or 'fail'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not photo:
+            return Response({"detail": "Photo is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Save the photo and update the gate pass
+        # This is a simplified example. In a real application, you would want to handle file uploads more robustly.
+        gate_pass.alcohol_test_photo = photo
+        if result == 'pass':
+            gate_pass.status = GatePass.APPROVED
+            gate_pass.approved_by = request.user
+            gate_pass.save()
+            gate_pass.generate_qr_code()
+            gate_pass.save()
+            # Send approval notification
+        else:
+            gate_pass.status = GatePass.REJECTED
+            gate_pass.approved_by = request.user
+            gate_pass.save()
+            # Send rejection notification and alert for driver change
 
         serializer = self.get_serializer(gate_pass)
         return Response(serializer.data, status=status.HTTP_200_OK)

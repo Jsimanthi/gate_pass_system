@@ -6,6 +6,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:mockito/annotations.dart';
 import 'qr_scanner_test.mocks.dart';
+import 'dart:io';
 
 @GenerateMocks([ApiClient])
 void main() {
@@ -28,7 +29,7 @@ void main() {
     });
 
     testWidgets('handles scan and displays verification result', (WidgetTester tester) async {
-      when(mockApiClient.verifyQrCode(any)).thenAnswer((_) async => {'message': 'Gate Pass Validated Successfully!'});
+      when(mockApiClient.verifyQrCode(any)).thenAnswer((_) async => {'message': 'Gate Pass Validated Successfully!', 'alcohol_test_required': false});
 
       await tester.pumpWidget(
         MaterialApp(
@@ -43,7 +44,24 @@ void main() {
       expect(find.text('Scan Result: test_qr_code'), findsOneWidget);
       await tester.pump();
 
-      expect(find.text('Verification Result: {message: Gate Pass Validated Successfully!}'), findsOneWidget);
+      expect(find.text('Verification Result: {message: Gate Pass Validated Successfully!, alcohol_test_required: false}'), findsOneWidget);
+    });
+
+    testWidgets('shows alcohol test dialog when required', (WidgetTester tester) async {
+      when(mockApiClient.verifyQrCode(any)).thenAnswer((_) async => {'gatepass_id': 123, 'alcohol_test_required': true});
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: QrScannerScreen(apiClient: mockApiClient),
+        ),
+      );
+
+      final QrScannerScreenState state = tester.state(find.byType(QrScannerScreen));
+      state.handleScan('test_qr_code');
+      await tester.pump();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Alcohol Test Required'), findsOneWidget);
     });
   });
 }

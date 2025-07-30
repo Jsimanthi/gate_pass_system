@@ -84,7 +84,9 @@ class GatePassSerializer(serializers.ModelSerializer):
             'purpose_id',
             'gate_id',
             'vehicle_id',
-            'driver_id'
+            'driver_id',
+            'alcohol_test_required',
+            'alcohol_test_photo'
         ]
         # These fields are set by the system or derived, not directly sent in the POST request body
         read_only_fields = [

@@ -36,6 +36,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
   String? _selectedGateId;
   String? _selectedVehicleId;
   String? _selectedDriverId;
+  bool _alcoholTestRequired = false;
 
   List<Map<String, dynamic>> _purposes = [];
   List<Map<String, dynamic>> _gates = [];
@@ -188,6 +189,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           'driver': _selectedDriverId != null && _selectedDriverId!.isNotEmpty
               ? int.parse(_selectedDriverId!)
               : null,
+          'alcohol_test_required': _alcoholTestRequired,
         };
 
         await _apiClient.post('/api/gatepass/', data);
@@ -502,6 +504,16 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 return null;
                               },
                             ),
+                          ),
+                          const SizedBox(height: 15),
+                          CheckboxListTile(
+                            title: const Text('Alcohol Test Required'),
+                            value: _alcoholTestRequired,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _alcoholTestRequired = value!;
+                              });
+                            },
                           ),
                           const SizedBox(height: 30),
 
