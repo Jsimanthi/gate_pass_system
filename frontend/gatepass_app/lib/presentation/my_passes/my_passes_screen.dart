@@ -243,7 +243,7 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
           _buildFilterButton('PENDING', Icons.hourglass_empty),
           _buildFilterButton('REJECTED', Icons.cancel),
           IconButton(
-            icon: Icon(Icons.sort),
+            icon: Icon(Icons.sort, color: _isSortedByDate ? Theme.of(context).primaryColor : Colors.grey),
             onPressed: _sortPasses,
           ),
         ],
