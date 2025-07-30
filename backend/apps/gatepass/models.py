@@ -46,6 +46,8 @@ class GatePass(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True) # Correct: automatically sets on creation
     updated_at = models.DateTimeField(auto_now=True)    # Correct: automatically updates on save
+    alcohol_test_required = models.BooleanField(default=False)
+    alcohol_test_photo = models.ImageField(upload_to='alcohol_tests/', blank=True, null=True)
 
     def __str__(self):
         return f"Gate Pass for {self.person_name} ({self.status})"
