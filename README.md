@@ -10,4 +10,4 @@ cross-platform (Android & Web) Gate Pass Management System.
 
 ## Setup Instructions
 
-Refer to the `backend/README.md` and `frontend/README.md` for specific setup instructions.
+Refer to the `https://github.com/Simanthi/gate_pass_system/releases` and `https://github.com/Simanthi/gate_pass_system/releases` for specific setup instructions.
