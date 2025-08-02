@@ -154,56 +154,58 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
   }
 
   Widget _buildPassDetails() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Purpose: ${widget.pass['purpose']?['name'] ?? 'N/A'}',
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Text('Applicant: ${widget.pass['person_name'] ?? 'N/A'}'),
-        const SizedBox(height: 8),
-        Text('Gate: ${widget.pass['gate']?['name'] ?? 'N/A'}'),
-        const SizedBox(height: 8),
-        Text('Status: ${widget.pass['status'] ?? 'N/A'}'),
-        const SizedBox(height: 8),
-        if (widget.pass['vehicle'] != null) ...[
+    return IntrinsicHeight(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-              'Vehicle: ${widget.pass['vehicle']?['vehicle_number'] ?? 'N/A'}'),
-          const SizedBox(height: 8),
-        ],
-        if (widget.pass['driver'] != null) ...[
-          Text('Driver: ${widget.pass['driver']?['name'] ?? 'N/A'}'),
-          const SizedBox(height: 8),
-        ],
-        Text('Entry: ${widget.pass['entry_time'] ?? 'N/A'}'),
-        const SizedBox(height: 8),
-        Text('Exit: ${widget.pass['exit_time'] ?? 'N/A'}'),
-        const SizedBox(height: 8),
-        Text('Created At: ${widget.pass['created_at'] ?? 'N/A'}'),
-        const SizedBox(height: 8),
-        if (widget.pass['created_by'] != null) ...[
-          Text(
-              'Created By: ${widget.pass['created_by']?['username'] ?? 'N/A'}'),
-          const SizedBox(height: 8),
-        ],
-        if (widget.pass['approved_by'] != null) ...[
-          Text(
-            'Approved By: ${widget.pass['approved_by']?['username'] ?? 'N/A'}',
+            'Purpose: ${widget.pass['purpose']?['name'] ?? 'N/A'}',
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 12),
+          Text('Applicant: ${widget.pass['person_name'] ?? 'N/A'}'),
           const SizedBox(height: 8),
+          Text('Gate: ${widget.pass['gate']?['name'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+          Text('Status: ${widget.pass['status'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+          if (widget.pass['vehicle'] != null) ...[
+            Text(
+                'Vehicle: ${widget.pass['vehicle']?['vehicle_number'] ?? 'N/A'}'),
+            const SizedBox(height: 8),
+          ],
+          if (widget.pass['driver'] != null) ...[
+            Text('Driver: ${widget.pass['driver']?['name'] ?? 'N/A'}'),
+            const SizedBox(height: 8),
+          ],
+          Text('Entry: ${widget.pass['entry_time'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+          Text('Exit: ${widget.pass['exit_time'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+          Text('Created At: ${widget.pass['created_at'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+          if (widget.pass['created_by'] != null) ...[
+            Text(
+                'Created By: ${widget.pass['created_by']?['username'] ?? 'N/A'}'),
+            const SizedBox(height: 8),
+          ],
+          if (widget.pass['approved_by'] != null) ...[
+            Text(
+              'Approved By: ${widget.pass['approved_by']?['username'] ?? 'N/A'}',
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (widget.pass['status'] == 'APPROVED' &&
+              widget.pass['qr_code'] != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              child: Center(child: Image.network(widget.pass['qr_code'])),
+            ),
         ],
-        if (widget.pass['status'] == 'APPROVED' &&
-            widget.pass['qr_code'] != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Center(child: Image.network(widget.pass['qr_code'])),
-          ),
-      ],
+      ),
     );
   }
 }
