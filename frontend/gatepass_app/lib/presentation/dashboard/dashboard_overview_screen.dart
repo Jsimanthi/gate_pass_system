@@ -43,20 +43,12 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
       _errorMessage = null;
     });
     try {
-      // Example API call to fetch dashboard data
-      // You'll need to create a Django API endpoint for this.
-      // For now, let's simulate some data.
-      // final response = await _apiClient.get('/api/dashboard-summary/');
-      // _pendingPasses = response['pending_count'] ?? 0;
-      // _approvedPasses = response['approved_count'] ?? 0;
-      // _rejectedPasses = response['rejected_count'] ?? 0;
-
-      // Simulate data for demonstration
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-      _pendingPasses = 5;
-      _approvedPasses = 12;
-      _rejectedPasses = 2;
-
+      final response = await _apiClient.get('api/gatepass/dashboard-summary/');
+      setState(() {
+        _pendingPasses = response['pending_count'] ?? 0;
+        _approvedPasses = response['approved_count'] ?? 0;
+        _rejectedPasses = response['rejected_count'] ?? 0;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = 'Error loading dashboard data: $e';
