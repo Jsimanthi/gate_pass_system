@@ -30,12 +30,14 @@ class _HomeScreenState extends State<HomeScreen> {
   late final AuthService _authService;
 
   late final List<Widget> _widgetOptions; // List of screens for the navigation
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _apiClient = widget.apiClient; // Assign from widget
     _authService = widget.authService; // Assign from widget
+    _checkAdminStatus();
 
     _widgetOptions = <Widget>[
       DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
@@ -44,7 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ProfileScreen(apiClient: _apiClient, authService: _authService),
       QrScannerScreen(apiClient: _apiClient),
       ReportsScreen(apiClient: _apiClient),
+      if (_isAdmin)
+        AdminScreen(apiClient: _apiClient, authService: _authService),
     ];
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final isAdmin = await _authService.isAdmin();
+    setState(() {
+      _isAdmin = isAdmin;
+    });
   }
 
   void _onItemTapped(int index) {
@@ -120,6 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.bar_chart),
             label: 'Reports',
           ),
+          if (_isAdmin)
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.admin_panel_settings),
+              label: 'Admin',
+            ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:gatepass_app/core/api_client.dart'; // Ensure this is imported
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; // Import for debugPrint
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthService {
   final SharedPreferences _prefs;
@@ -77,5 +78,19 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     final accessToken = await getAccessToken();
     return accessToken != null && accessToken.isNotEmpty;
+  }
+
+  // --- Check if user is an admin ---
+  Future<bool> isAdmin() async {
+    final accessToken = await getAccessToken();
+    if (accessToken == null) {
+      return false;
+    }
+    try {
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
+      return decodedToken['is_staff'] ?? false;
+    } catch (e) {
+      return false;
+    }
   }
 }
