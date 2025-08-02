@@ -1,83 +1,197 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:printing/printing.dart';
 
-class MyPassDetailsScreen extends StatelessWidget {
+class MyPassDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> pass;
 
   const MyPassDetailsScreen({super.key, required this.pass});
 
   @override
+  State<MyPassDetailsScreen> createState() => _MyPassDetailsScreenState();
+}
+
+class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
+  final ScreenshotController _screenshotController = ScreenshotController();
+  final GlobalKey _globalKey = GlobalKey();
+
+  Future<void> _captureAndSave() async {
+    try {
+      final Uint8List? image = await _screenshotController.captureFromWidget(
+        Container(
+          key: _globalKey,
+          padding: const EdgeInsets.all(30.0),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
+          ),
+          child: _buildPassDetails(),
+        ),
+      );
+      if (image != null) {
+        final result = await ImageGallerySaver.saveImage(image);
+        if (result['isSuccess']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pass saved to gallery')),
+          );
+        } else {
+          throw Exception(result['errorMessage']);
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save pass: $e')),
+      );
+    }
+  }
+
+  Future<void> _captureAndShare() async {
+    try {
+      final Uint8List? image = await _screenshotController.captureFromWidget(
+        Container(
+          key: _globalKey,
+          padding: const EdgeInsets.all(30.0),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
+          ),
+          child: _buildPassDetails(),
+        ),
+      );
+      if (image != null) {
+        final passDetails =
+            'Pass for: ${widget.pass['person_name']}\nPurpose: ${widget.pass['purpose']?['name']}';
+        final xFile = XFile.fromData(
+          image,
+          mimeType: 'image/png',
+          name: 'gatepass.png',
+        );
+        await Share.shareXFiles([xFile], text: passDetails);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share pass: $e')),
+      );
+    }
+  }
+
+  Future<void> _captureAndPrint() async {
+    try {
+      final Uint8List? image = await _screenshotController.captureFromWidget(
+        Container(
+          key: _globalKey,
+          padding: const EdgeInsets.all(30.0),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
+          ),
+          child: _buildPassDetails(),
+        ),
+      );
+      if (image != null) {
+        await Printing.layoutPdf(
+          onLayout: (format) async => image,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to print pass: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Gate Pass Details')),
-      // Wrap the content in a SingleChildScrollView to prevent overflow
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display the main purpose with a prominent style
-              Text(
-                'Purpose: ${pass['purpose']?['name'] ?? 'N/A'}',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              _buildPassDetails(),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _captureAndSave,
+                    icon: const Icon(Icons.download),
+                    label: const Text('Download'),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _captureAndShare,
+                    icon: const Icon(Icons.share),
+                    label: const Text('Send'),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _captureAndPrint,
+                    icon: const Icon(Icons.print),
+                    label: const Text('Print'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-
-              // Applicant Details
-              Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
-              const SizedBox(height: 8),
-
-              // Gate and Status
-              Text('Gate: ${pass['gate']?['name'] ?? 'N/A'}'),
-              const SizedBox(height: 8),
-
-              Text('Status: ${pass['status'] ?? 'N/A'}'),
-              const SizedBox(height: 8),
-
-              // Conditional details for vehicle and driver
-              if (pass['vehicle'] != null) ...[
-                Text('Vehicle: ${pass['vehicle']?['vehicle_number'] ?? 'N/A'}'),
-                const SizedBox(height: 8),
-              ],
-              if (pass['driver'] != null) ...[
-                Text('Driver: ${pass['driver']?['name'] ?? 'N/A'}'),
-                const SizedBox(height: 8),
-              ],
-
-              // Time-related details
-              Text('Entry: ${pass['entry_time'] ?? 'N/A'}'),
-              const SizedBox(height: 8),
-
-              Text('Exit: ${pass['exit_time'] ?? 'N/A'}'),
-              const SizedBox(height: 8),
-
-              Text('Created At: ${pass['created_at'] ?? 'N/A'}'),
-              const SizedBox(height: 8),
-
-              // Conditional details for created by and approved by
-              if (pass['created_by'] != null) ...[
-                Text('Created By: ${pass['created_by']?['username'] ?? 'N/A'}'),
-                const SizedBox(height: 8),
-              ],
-              if (pass['approved_by'] != null) ...[
-                Text(
-                  'Approved By: ${pass['approved_by']?['username'] ?? 'N/A'}',
-                ),
-                const SizedBox(height: 8),
-              ],
-
-              // Display the QR code if the status is APPROVED
-              if (pass['status'] == 'APPROVED' && pass['qr_code'] != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: Center(child: Image.network(pass['qr_code'])),
-                ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPassDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Purpose: ${widget.pass['purpose']?['name'] ?? 'N/A'}',
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Text('Applicant: ${widget.pass['person_name'] ?? 'N/A'}'),
+        const SizedBox(height: 8),
+        Text('Gate: ${widget.pass['gate']?['name'] ?? 'N/A'}'),
+        const SizedBox(height: 8),
+        Text('Status: ${widget.pass['status'] ?? 'N/A'}'),
+        const SizedBox(height: 8),
+        if (widget.pass['vehicle'] != null) ...[
+          Text(
+              'Vehicle: ${widget.pass['vehicle']?['vehicle_number'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+        ],
+        if (widget.pass['driver'] != null) ...[
+          Text('Driver: ${widget.pass['driver']?['name'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+        ],
+        Text('Entry: ${widget.pass['entry_time'] ?? 'N/A'}'),
+        const SizedBox(height: 8),
+        Text('Exit: ${widget.pass['exit_time'] ?? 'N/A'}'),
+        const SizedBox(height: 8),
+        Text('Created At: ${widget.pass['created_at'] ?? 'N/A'}'),
+        const SizedBox(height: 8),
+        if (widget.pass['created_by'] != null) ...[
+          Text(
+              'Created By: ${widget.pass['created_by']?['username'] ?? 'N/A'}'),
+          const SizedBox(height: 8),
+        ],
+        if (widget.pass['approved_by'] != null) ...[
+          Text(
+            'Approved By: ${widget.pass['approved_by']?['username'] ?? 'N/A'}',
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (widget.pass['status'] == 'APPROVED' &&
+            widget.pass['qr_code'] != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20.0),
+            child: Center(child: Image.network(widget.pass['qr_code'])),
+          ),
+      ],
     );
   }
 }

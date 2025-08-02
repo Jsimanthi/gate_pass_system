@@ -6,8 +6,30 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import GatePass
 from .serializers import GatePassSerializer
-from django.core.mail import send_mail # ADD THIS IMPORT
-from django.conf import settings     # ADD THIS IMPORT to access DEFAULT_FROM_EMAIL
+from django.core.mail import send_mail
+from django.conf import settings
+from rest_framework.views import APIView
+
+
+class DashboardSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = self.request.user
+        base_queryset = GatePass.objects
+        if not (user.is_staff or user.is_superuser):
+            base_queryset = base_queryset.filter(created_by=user)
+
+        pending_count = base_queryset.filter(status=GatePass.PENDING).count()
+        approved_count = base_queryset.filter(status=GatePass.APPROVED).count()
+        rejected_count = base_queryset.filter(status=GatePass.REJECTED).count()
+
+        return Response({
+            'pending_count': pending_count,
+            'approved_count': approved_count,
+            'rejected_count': rejected_count,
+        })
+
 
 # GatePass ViewSet
 class GatePassViewSet(viewsets.ModelViewSet):

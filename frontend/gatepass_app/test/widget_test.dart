@@ -12,29 +12,12 @@ import 'package:gatepass_app/services/auth_service.dart'; // Import AuthService
 import 'package:gatepass_app/core/api_client.dart';       // Import ApiClient
 import 'package:shared_preferences/shared_preferences.dart'; // Needed for AuthService mock
 import 'package:mockito/mockito.dart'; // Import mockito for mocking
+import 'package:mockito/annotations.dart';
+
+import 'widget_test.mocks.dart';
 
 // Create mock classes for AuthService and ApiClient
-class MockSharedPreferences extends Mock implements SharedPreferences {}
-class MockAuthService extends Mock implements AuthService {
-  @override
-  Future<bool> isLoggedIn() async {
-    return super.noSuchMethod(
-      Invocation.method(#isLoggedIn, []),
-      returnValue: Future.value(false), // Default return value
-    );
-  }
-
-  @override
-  Future<String?> getAccessToken() async {
-    return super.noSuchMethod(
-      Invocation.method(#getAccessToken, []),
-      returnValue: Future.value('fake_token'), // Default return value
-    );
-  }
-}
-class MockApiClient extends Mock implements ApiClient {}
-
-
+@GenerateMocks([ApiClient, AuthService, SharedPreferences])
 void main() {
   // Group tests related to your main application widget
   group('MyApp widget tests', () {
@@ -52,6 +35,11 @@ void main() {
       when(mockAuthService.isLoggedIn()).thenAnswer((_) async => true);
       // Stub other methods if they are called directly in MyApp or initial screens
       when(mockAuthService.getAccessToken()).thenAnswer((_) async => 'mock_token');
+      when(mockApiClient.get(any)).thenAnswer((_) async => {
+            'pending_count': 0,
+            'approved_count': 0,
+            'rejected_count': 0,
+          });
     });
 
     testWidgets('MyApp renders correctly', (WidgetTester tester) async {
