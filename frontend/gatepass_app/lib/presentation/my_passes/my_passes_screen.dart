@@ -67,8 +67,8 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
     });
     try {
       // Actual API call to your Django backend
-      final response = await _apiClient.get('/api/gatepass/');
-      debugPrint('DEBUG: API call to /api/gatepass/ returned. Processing results.'); // Debug print
+      final response = await _apiClient.get('api/gatepass/gatepasses/');
+      debugPrint('DEBUG: API call to /api/gatepass/gatepasses/ returned. Processing results.'); // Debug print
       _myGatePasses = _extractResults(response); // Process the response
       _filteredGatePasses = _myGatePasses;
       debugPrint('DEBUG: _myGatePasses after extraction: $_myGatePasses'); // Debug print
