@@ -1,5 +1,3 @@
-// File: lib/presentation/auth/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
@@ -74,12 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
         : screenWidth * 0.9; // Max 400px or 90% of screen width
 
     return Scaffold(
-      // AppBar removed for a cleaner, full-screen login experience
-      // If you want an AppBar, you can uncomment it, but typically login screens
-      // don't have one unless it has specific actions (e.g., "back" button)
-      // appBar: AppBar(
-      //   title: const Text('Login'),
-      // ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -105,16 +97,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       MainAxisSize.min, // Make column only take needed space
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // --- Login Logo (now inside the card) ---
-                    const Icon(
-                      Icons.lock_open_rounded,
-                      size: 80, // Slightly smaller icon, fits better
-                      color: Colors.blueGrey,
+                    // --- Company Logo and Name ---
+                    Column(
+                      children: [
+                        Image.asset(
+                          'assets/images/sblt_logo.png', // Make sure this path is correct
+                          height: 50, // Adjust the height as needed
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sri Bhagiyalakhsmi Enterprise',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey.shade800,
+                              ),
+                        ),
+                        const SizedBox(
+                          height: 24,
+                        ), // Spacing after the company name
+                      ],
                     ),
-                    const SizedBox(height: 24), // Spacing after the icon
                     // --- Title / Welcome Text ---
                     Text(
-                      'Welcome Back!',
+                      'GATE PASS',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(
