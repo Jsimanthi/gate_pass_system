@@ -5,6 +5,9 @@ Base settings for the Gate Pass System backend.
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -202,6 +205,7 @@ SIMPLE_JWT = {
 
 # CORS settings for Flutter frontend (adjust as needed for production)
 CORS_ALLOW_ALL_ORIGINS = True # For development, very permissive
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 # CORS_ALLOWED_ORIGINS = [ # For production, list specific origins
 #     "http://localhost:8000", # Django dev server
 #     "http://localhost:5000", # Flutter web dev server (default)

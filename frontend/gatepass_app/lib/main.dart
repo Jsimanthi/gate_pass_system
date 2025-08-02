@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/presentation/home/home_screen.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
+import 'package:gatepass_app/presentation/admin/admin_screen.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+Future main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  const String baseUrl = 'http://127.0.0.1:8000';
+  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://127.0.0.1:8000';
 
   // Initialize AuthService first with a temporary null for ApiClient
   final authService = AuthService(sharedPreferences, null);
@@ -106,6 +110,8 @@ class MyApp extends StatelessWidget {
             HomeScreen(apiClient: apiClient, authService: authService),
         '/reports': (context) =>
             ReportsScreen(apiClient: apiClient),
+        '/admin': (context) =>
+            AdminScreen(apiClient: apiClient, authService: authService),
       },
     );
   }
