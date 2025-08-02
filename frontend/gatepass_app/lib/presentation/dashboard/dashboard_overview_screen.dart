@@ -43,7 +43,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
       _errorMessage = null;
     });
     try {
-      final response = await _apiClient.get('api/gatepass/dashboard-summary/');
+      final response = await _apiClient.get('/api/gatepass/dashboard-summary/');
       setState(() {
         _pendingPasses = response['pending_count'] ?? 0;
         _approvedPasses = response['approved_count'] ?? 0;
