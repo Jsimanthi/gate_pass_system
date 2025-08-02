@@ -12,7 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  const String baseUrl = 'http://127.0.0.1:8000';
+  const String baseUrl = 'http://127.0.0.1:8000/';
 
   // Initialize AuthService first with a temporary null for ApiClient
   final authService = AuthService(sharedPreferences, null);
