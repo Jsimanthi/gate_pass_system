@@ -33,6 +33,7 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
       );
       if (image != null) {
         final result = await ImageGallerySaver.saveImage(image);
+        if (!mounted) return;
         if (result['isSuccess']) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Pass saved to gallery')),
@@ -42,6 +43,7 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save pass: $e')),
       );
@@ -72,6 +74,7 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
         await Share.shareXFiles([xFile], text: passDetails);
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to share pass: $e')),
       );
@@ -97,6 +100,7 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to print pass: $e')),
       );
