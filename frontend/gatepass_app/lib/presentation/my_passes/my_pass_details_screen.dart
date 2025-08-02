@@ -121,20 +121,28 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: _captureAndSave,
-                    icon: const Icon(Icons.download),
-                    label: const Text('Download'),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _captureAndSave,
+                      icon: const Icon(Icons.download),
+                      label: const Text('Download'),
+                    ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _captureAndShare,
-                    icon: const Icon(Icons.share),
-                    label: const Text('Send'),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _captureAndShare,
+                      icon: const Icon(Icons.share),
+                      label: const Text('Send'),
+                    ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _captureAndPrint,
-                    icon: const Icon(Icons.print),
-                    label: const Text('Print'),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _captureAndPrint,
+                      icon: const Icon(Icons.print),
+                      label: const Text('Print'),
+                    ),
                   ),
                 ],
               ),
