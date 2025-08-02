@@ -1,13 +1,11 @@
-// File: lib/presentation/home/home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.dart';
 import 'package:gatepass_app/presentation/my_passes/my_passes_screen.dart';
-import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart'; // NEW: Import GatePassRequestScreen
-import 'package:gatepass_app/presentation/profile/profile_screen.dart'; // NEW: Import the external ProfileScreen
+import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart';
+import 'package:gatepass_app/presentation/profile/profile_screen.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
 
@@ -42,14 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _widgetOptions = <Widget>[
       DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
       MyPassesScreen(apiClient: _apiClient, authService: _authService),
-      GatePassRequestScreen(
-        apiClient: _apiClient,
-        authService: _authService,
-      ), // NEW: Add GatePassRequestScreen
-      ProfileScreen(
-        apiClient: _apiClient,
-        authService: _authService,
-      ), // NEW: Use the external ProfileScreen
+      GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+      ProfileScreen(apiClient: _apiClient, authService: _authService),
       QrScannerScreen(apiClient: _apiClient),
       ReportsScreen(apiClient: _apiClient),
     ];
@@ -79,7 +71,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // Set automaticallyImplyLeading to false to use our custom leading widget
+        automaticallyImplyLeading: false,
+
+        // --- Custom Logo as Leading Widget ---
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0), // Add some padding
+          child: Image.asset(
+            'assets/images/sblt_logo.png',
+            height: 40, // You can adjust this height
+          ),
+        ),
+
         title: const Text('Gate Pass System'), // AppBar title for the whole app
+
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -102,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'My Passes',
           ),
           BottomNavigationBarItem(
-            // NEW: Add Request Pass item
+            // Add Request Pass item
             icon: Icon(Icons.add_box),
             label: 'Request Pass',
           ),
