@@ -168,8 +168,14 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
       });
 
       try {
-        final entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_entryTimeController.text, true);
-        final exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_exitTimeController.text, true);
+        DateTime? entryTime;
+        DateTime? exitTime;
+        try {
+          entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parseStrict(_entryTimeController.text, true);
+          exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parseStrict(_exitTimeController.text, true);
+        } catch (e) {
+          print('Error parsing date: $e');
+        }
 
         final Map<String, dynamic> data = {
           'person_name': _personNameController.text,
@@ -180,14 +186,16 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           'person_address': _personAddressController.text.isNotEmpty
               ? _personAddressController.text
               : null,
-          'entry_time': entryTime.toUtc().toIso8601String(),
-          'exit_time': exitTime.toUtc().toIso8601String(),
+          'entry_time': entryTime?.toUtc().toIso8601String(),
+          'exit_time': exitTime?.toUtc().toIso8601String(),
           'purpose_id': _selectedPurposeId,
           'gate_id': _selectedGateId,
           'vehicle_id': _selectedVehicleId,
           'driver_id': _selectedDriverId,
           'alcohol_test_required': _alcoholTestRequired,
         };
+
+        print('Data being sent: $data');
 
         await _apiClient.post('/api/gatepass/gatepasses/', data);
 
