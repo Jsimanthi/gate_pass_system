@@ -149,7 +149,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
                         Text('Status: ${pass['status'] ?? 'N/A'}'),
                         Text(
-                          'Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}',
+                          'Entry: ${pass['entry_time'] != null ? DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(pass['entry_time'])) : 'N/A'}',
                         ),
                       ],
                     ),
