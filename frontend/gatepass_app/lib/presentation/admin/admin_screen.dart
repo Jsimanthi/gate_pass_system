@@ -195,26 +195,22 @@ class _AdminScreenState extends State<AdminScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(child: _buildFilterButton('All')),
-          const SizedBox(width: 8),
-          Expanded(child: _buildFilterButton('PENDING')),
-          const SizedBox(width: 8),
-          Expanded(child: _buildFilterButton('APPROVED')),
-          const SizedBox(width: 8),
-          Expanded(child: _buildFilterButton('REJECTED')),
+          _buildFilterButton('All', Icons.all_inclusive),
+          _buildFilterButton('PENDING', Icons.hourglass_empty),
+          _buildFilterButton('APPROVED', Icons.check_circle),
+          _buildFilterButton('REJECTED', Icons.cancel),
         ],
       ),
     );
   }
 
-  Widget _buildFilterButton(String status) {
-    return ElevatedButton(
+  Widget _buildFilterButton(String status, IconData icon) {
+    return IconButton(
       onPressed: () => _filterPasses(status),
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
-      ),
-      child: Text(status),
+      icon: Icon(icon),
+      color: _selectedStatus == status
+          ? Theme.of(context).primaryColor
+          : Colors.grey,
     );
   }
 

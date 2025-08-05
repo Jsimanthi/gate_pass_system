@@ -30,20 +30,20 @@ class _HomeScreenState extends State<HomeScreen> {
   late final ApiClient _apiClient;
   late final AuthService _authService;
 
-  bool _isAdmin = false;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
     _apiClient = widget.apiClient; // Assign from widget
     _authService = widget.authService; // Assign from widget
-    _checkAdminStatus();
+    _checkUserRole();
   }
 
-  Future<void> _checkAdminStatus() async {
-    final isAdmin = await _authService.isAdmin();
+  Future<void> _checkUserRole() async {
+    final role = await _authService.getUserRole();
     setState(() {
-      _isAdmin = isAdmin;
+      _userRole = role;
     });
   }
 
@@ -72,34 +72,91 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _widgetOptions = <Widget>[
-      DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
-      MyPassesScreen(apiClient: _apiClient, authService: _authService),
-      GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
-      ProfileScreen(apiClient: _apiClient, authService: _authService),
-      QrScannerScreen(apiClient: _apiClient),
-      ReportsScreen(apiClient: _apiClient),
-      if (_isAdmin)
+    if (_userRole == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    List<Widget> _widgetOptions = [];
+    List<BottomNavigationBarItem> _navBarItems = [];
+
+    // Common items for all roles
+    _widgetOptions.add(DashboardOverviewScreen(apiClient: _apiClient, authService: _authService));
+    _navBarItems.add(const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'));
+
+    if (_userRole == 'Admin') {
+      _widgetOptions.addAll([
+        MyPassesScreen(apiClient: _apiClient, authService: _authService),
+        GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+        QrScannerScreen(apiClient: _apiClient),
+        ReportsScreen(apiClient: _apiClient),
         AdminScreen(apiClient: _apiClient, authService: _authService),
-    ];
+      ]);
+      _navBarItems.addAll([
+        const BottomNavigationBarItem(icon: Icon(Icons.description), label: 'My Passes'),
+        const BottomNavigationBarItem(icon: Icon(Icons.add_box), label: 'Request Pass'),
+        const BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
+        const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
+        const BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: 'Admin'),
+      ]);
+    } else if (_userRole == 'Security') {
+      _widgetOptions.addAll([
+        QrScannerScreen(apiClient: _apiClient),
+        ReportsScreen(apiClient: _apiClient),
+      ]);
+      _navBarItems.addAll([
+        const BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
+        const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
+      ]);
+    } else if (_userRole == 'Client Care') {
+      _widgetOptions.addAll([
+        AdminScreen(apiClient: _apiClient, authService: _authService),
+        ReportsScreen(apiClient: _apiClient),
+      ]);
+      _navBarItems.addAll([
+        const BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: 'Admin'),
+        const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
+      ]);
+    } else if (_userRole == 'User') {
+      _widgetOptions.addAll([
+        MyPassesScreen(apiClient: _apiClient, authService: _authService),
+        GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+        ReportsScreen(apiClient: _apiClient),
+      ]);
+      _navBarItems.addAll([
+        const BottomNavigationBarItem(icon: Icon(Icons.description), label: 'My Passes'),
+        const BottomNavigationBarItem(icon: Icon(Icons.add_box), label: 'Request Pass'),
+        const BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
+      ]);
+    }
 
     return Scaffold(
       appBar: AppBar(
-        // Set automaticallyImplyLeading to false to use our custom leading widget
         automaticallyImplyLeading: false,
-
-        // --- Custom Logo as Leading Widget ---
         leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0), // Add some padding
-          child: Image.asset(
-            'assets/images/sblt_logo.png',
-            height: 40, // You can adjust this height
-          ),
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Image.asset('assets/images/sblt_logo.png', height: 40),
         ),
-
-        title: const Text('Gate Pass System'), // AppBar title for the whole app
-
+        title: const Text('Gate Pass System'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(
+                    apiClient: _apiClient,
+                    authService: _authService,
+                  ),
+                ),
+              );
+            },
+            tooltip: 'Profile',
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _logout,
@@ -107,47 +164,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _widgetOptions.elementAt(
-        _selectedIndex,
-      ), // Display the selected screen
+      body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description), // Icon for My Passes
-            label: 'My Passes',
-          ),
-          BottomNavigationBarItem(
-            // Add Request Pass item
-            icon: Icon(Icons.add_box),
-            label: 'Request Pass',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Scan QR',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Reports',
-          ),
-          if (_isAdmin)
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.admin_panel_settings),
-              label: 'Admin',
-            ),
-        ],
+        items: _navBarItems,
         currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(
-          context,
-        ).colorScheme.primary, // Use theme color
-        unselectedItemColor: Colors.grey, // Ensure unselected items are visible
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType
-            .fixed, // Use fixed type if you have more than 3 items
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }

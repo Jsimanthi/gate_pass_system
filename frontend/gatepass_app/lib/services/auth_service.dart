@@ -80,17 +80,41 @@ class AuthService {
     return accessToken != null && accessToken.isNotEmpty;
   }
 
-  // --- Check if user is an admin ---
-  Future<bool> isAdmin() async {
+  // --- Get User Role ---
+  Future<String?> getUserRole() async {
     final accessToken = await getAccessToken();
     if (accessToken == null) {
-      return false;
+      return null;
     }
     try {
       final Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-      return decodedToken['is_staff'] ?? false;
+      return decodedToken['role'];
     } catch (e) {
-      return false;
+      return null;
     }
+  }
+
+  // --- Check if user is an admin ---
+  Future<bool> isAdmin() async {
+    final role = await getUserRole();
+    return role == 'Admin';
+  }
+
+  // --- Check if user is Security ---
+  Future<bool> isSecurity() async {
+    final role = await getUserRole();
+    return role == 'Security';
+  }
+
+  // --- Check if user is Client Care ---
+  Future<bool> isClientCare() async {
+    final role = await getUserRole();
+    return role == 'Client Care';
+  }
+
+  // --- Check if user is a regular User ---
+  Future<bool> isUser() async {
+    final role = await getUserRole();
+    return role == 'User';
   }
 }

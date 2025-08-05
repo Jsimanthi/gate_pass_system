@@ -12,6 +12,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Add custom claims
         token['username'] = user.username
         token['is_staff'] = user.is_staff
+        token['role'] = user.role
 
         return token
 
@@ -27,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
             'is_staff',
             'is_superuser',
             'is_active',
+            'role',
             # Add any other fields you want to expose from your CustomUser model
         ]
         read_only_fields = ['is_staff', 'is_superuser', 'is_active'] # These are usually set by admins
