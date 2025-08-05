@@ -89,18 +89,18 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         // We have a valid user role, build the screen
-        final _userRole = snapshot.data!;
-        List<Widget> _widgetOptions = [];
-        List<BottomNavigationBarItem> _navBarItems = [];
+        final userRole = snapshot.data!;
+        List<Widget> widgetOptions = [];
+        List<BottomNavigationBarItem> navBarItems = [];
 
         // Common item for all roles
-        _widgetOptions.add(
+        widgetOptions.add(
           DashboardOverviewScreen(
             apiClient: _apiClient,
             authService: _authService,
           ),
         );
-        _navBarItems.add(
+        navBarItems.add(
           const BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
@@ -108,8 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         // Role-based navigation items
-        if (_userRole == 'Admin') {
-          _widgetOptions.addAll([
+        if (userRole == 'Admin') {
+          widgetOptions.addAll([
             MyPassesScreen(apiClient: _apiClient, authService: _authService),
             GatePassRequestScreen(
               apiClient: _apiClient,
@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ReportsScreen(apiClient: _apiClient),
             AdminScreen(apiClient: _apiClient, authService: _authService),
           ]);
-          _navBarItems.addAll([
+          navBarItems.addAll([
             const BottomNavigationBarItem(
               icon: Icon(Icons.description),
               label: 'My Passes',
@@ -141,12 +141,12 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Manage Passes',
             ),
           ]);
-        } else if (_userRole == 'Security') {
-          _widgetOptions.addAll([
+        } else if (userRole == 'Security') {
+          widgetOptions.addAll([
             QrScannerScreen(apiClient: _apiClient),
             ReportsScreen(apiClient: _apiClient),
           ]);
-          _navBarItems.addAll([
+          navBarItems.addAll([
             const BottomNavigationBarItem(
               icon: Icon(Icons.qr_code_scanner),
               label: 'Scan QR',
@@ -156,12 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Reports',
             ),
           ]);
-        } else if (_userRole == 'Client Care') {
-          _widgetOptions.addAll([
+        } else if (userRole == 'Client Care') {
+          widgetOptions.addAll([
             AdminScreen(apiClient: _apiClient, authService: _authService),
             ReportsScreen(apiClient: _apiClient),
           ]);
-          _navBarItems.addAll([
+          navBarItems.addAll([
             const BottomNavigationBarItem(
               icon: Icon(Icons.sensor_door),
               label: 'Manage Passes',
@@ -171,8 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Reports',
             ),
           ]);
-        } else if (_userRole == 'User') {
-          _widgetOptions.addAll([
+        } else if (userRole == 'User') {
+          widgetOptions.addAll([
             MyPassesScreen(apiClient: _apiClient, authService: _authService),
             GatePassRequestScreen(
               apiClient: _apiClient,
@@ -180,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ReportsScreen(apiClient: _apiClient),
           ]);
-          _navBarItems.addAll([
+          navBarItems.addAll([
             const BottomNavigationBarItem(
               icon: Icon(Icons.description),
               label: 'My Passes',
@@ -227,9 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          body: _widgetOptions.elementAt(_selectedIndex),
+          body: widgetOptions.elementAt(_selectedIndex),
           bottomNavigationBar: BottomNavigationBar(
-            items: _navBarItems,
+            items: navBarItems,
             currentIndex: _selectedIndex,
             selectedItemColor: Theme.of(context).colorScheme.primary,
             unselectedItemColor: Colors.grey,
