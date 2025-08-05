@@ -16,7 +16,6 @@ class MyPassDetailsScreen extends StatefulWidget {
 
 class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
-  final GlobalKey _globalKey = GlobalKey();
 
   Future<void> _captureAndSave() async {
     try {
@@ -143,7 +142,6 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
                 .textTheme
                 .titleLarge
                 ?.copyWith(fontWeight: FontWeight.bold),
-          ),
           const SizedBox(height: 12),
           Text('Applicant: ${widget.pass['person_name'] ?? 'N/A'}'),
           const SizedBox(height: 8),
