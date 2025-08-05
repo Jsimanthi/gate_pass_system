@@ -20,17 +20,8 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
 
   Future<void> _captureAndSave() async {
     try {
-      final Uint8List? image = await _screenshotController.captureFromWidget(
-        Container(
-          key: _globalKey,
-          padding: const EdgeInsets.all(30.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
-          ),
-          child: _buildPassDetails(),
-        ),
-      );
+      final Uint8List? image = await _screenshotController.capture(
+          delay: const Duration(milliseconds: 10));
       if (image != null) {
         final result = await ImageGallerySaver.saveImage(image);
         if (!mounted) return;
@@ -52,17 +43,8 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
 
   Future<void> _captureAndShare() async {
     try {
-      final Uint8List? image = await _screenshotController.captureFromWidget(
-        Container(
-          key: _globalKey,
-          padding: const EdgeInsets.all(30.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
-          ),
-          child: _buildPassDetails(),
-        ),
-      );
+      final Uint8List? image = await _screenshotController.capture(
+          delay: const Duration(milliseconds: 10));
       if (image != null) {
         final passDetails =
             'Pass for: ${widget.pass['person_name']}\nPurpose: ${widget.pass['purpose']?['name']}';
@@ -83,17 +65,8 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
 
   Future<void> _captureAndPrint() async {
     try {
-      final Uint8List? image = await _screenshotController.captureFromWidget(
-        Container(
-          key: _globalKey,
-          padding: const EdgeInsets.all(30.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
-          ),
-          child: _buildPassDetails(),
-        ),
-      );
+      final Uint8List? image = await _screenshotController.capture(
+          delay: const Duration(milliseconds: 10));
       if (image != null) {
         await Printing.layoutPdf(
           onLayout: (format) async => image,
@@ -145,10 +118,13 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: _buildPassDetails(),
+            child: Screenshot(
+              controller: _screenshotController,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildPassDetails(),
+                ),
               ),
             ),
           ),
@@ -158,11 +134,10 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
   }
 
   Widget _buildPassDetails() {
-    return IntrinsicHeight(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
             'Purpose: ${widget.pass['purpose']?['name'] ?? 'N/A'}',
             style: Theme.of(context)
                 .textTheme
