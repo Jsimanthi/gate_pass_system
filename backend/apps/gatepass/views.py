@@ -61,7 +61,7 @@ class GatePassViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff or user.is_superuser:
+        if user.is_staff or user.is_superuser or user.role == 'Client Care':
             return GatePass.objects.all()
         return GatePass.objects.filter(created_by=user)
 
