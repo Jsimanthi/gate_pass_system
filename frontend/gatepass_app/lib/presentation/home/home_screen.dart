@@ -30,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late final ApiClient _apiClient;
   late final AuthService _authService;
 
-  late final List<Widget> _widgetOptions; // List of screens for the navigation
   bool _isAdmin = false;
 
   @override
@@ -39,17 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _apiClient = widget.apiClient; // Assign from widget
     _authService = widget.authService; // Assign from widget
     _checkAdminStatus();
-
-    _widgetOptions = <Widget>[
-      DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
-      MyPassesScreen(apiClient: _apiClient, authService: _authService),
-      GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
-      ProfileScreen(apiClient: _apiClient, authService: _authService),
-      QrScannerScreen(apiClient: _apiClient),
-      ReportsScreen(apiClient: _apiClient),
-      if (_isAdmin)
-        AdminScreen(apiClient: _apiClient, authService: _authService),
-    ];
   }
 
   Future<void> _checkAdminStatus() async {
@@ -84,6 +72,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _widgetOptions = <Widget>[
+      DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
+      MyPassesScreen(apiClient: _apiClient, authService: _authService),
+      GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+      ProfileScreen(apiClient: _apiClient, authService: _authService),
+      QrScannerScreen(apiClient: _apiClient),
+      ReportsScreen(apiClient: _apiClient),
+      if (_isAdmin)
+        AdminScreen(apiClient: _apiClient, authService: _authService),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         // Set automaticallyImplyLeading to false to use our custom leading widget
