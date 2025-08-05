@@ -50,7 +50,7 @@ class _AdminScreenState extends State<AdminScreen> {
       _errorMessage = null;
     });
     try {
-      final response = await _apiClient.get('api/gatepass/gatepasses/');
+      final response = await _apiClient.get('/api/gatepass/gatepasses/');
       _allGatePasses = _extractResults(response);
       _filteredGatePasses = _allGatePasses;
     } catch (e) {
@@ -66,7 +66,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   Future<void> _approvePass(int passId) async {
     try {
-      await _apiClient.post('api/gatepass/gatepasses/$passId/approve/', {});
+      await _apiClient.post('/api/gatepass/gatepasses/$passId/approve/', {});
       _fetchAllGatePasses();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,7 +77,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   Future<void> _rejectPass(int passId) async {
     try {
-      await _apiClient.post('api/gatepass/gatepasses/$passId/reject/', {});
+      await _apiClient.post('/api/gatepass/gatepasses/$passId/reject/', {});
       _fetchAllGatePasses();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
