@@ -58,6 +58,10 @@ class GatePassSerializer(serializers.ModelSerializer):
     vehicle_id = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all(), allow_null=True, required=False, write_only=True)
     driver_id = serializers.PrimaryKeyRelatedField(queryset=Driver.objects.all(), allow_null=True, required=False, write_only=True)
 
+    entry_time = serializers.SerializerMethodField()
+    exit_time = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+    updated_at = serializers.SerializerMethodField()
 
     class Meta:
         model = GatePass
@@ -90,10 +94,22 @@ class GatePassSerializer(serializers.ModelSerializer):
         ]
         # These fields are set by the system or derived, not directly sent in the POST request body
         read_only_fields = [
-            'id', 'qr_code', 'status', 'created_by', 'approved_by', 'created_at', 'updated_at',
+            'id', 'qr_code', 'status', 'created_by', 'approved_by',
             # The 'purpose', 'gate', 'vehicle', 'driver' fields are implicitly read_only
             # because they are defined with nested serializers.
         ]
+
+    def get_entry_time(self, obj):
+        return obj.entry_time.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.entry_time else None
+
+    def get_exit_time(self, obj):
+        return obj.exit_time.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.exit_time else None
+
+    def get_created_at(self, obj):
+        return obj.created_at.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.created_at else None
+
+    def get_updated_at(self, obj):
+        return obj.updated_at.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.updated_at else None
 
     # Override create to handle the PrimaryKeyRelatedFields correctly.
     # The default ModelSerializer create method will often handle this automatically if field names match,
