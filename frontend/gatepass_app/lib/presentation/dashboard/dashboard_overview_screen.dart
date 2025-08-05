@@ -113,11 +113,11 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
           ),
           const SizedBox(height: 20),
           GridView.count(
-            crossAxisCount: 2,
+            crossAxisCount: 3,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(), // Disable scrolling inside GridView
-            mainAxisSpacing: 16.0,
-            crossAxisSpacing: 16.0,
+            mainAxisSpacing: 8.0,
+            crossAxisSpacing: 8.0,
             children: <Widget>[
               _buildDashboardCard(
                 context,
@@ -160,7 +160,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
