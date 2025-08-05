@@ -113,7 +113,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
           ),
           const SizedBox(height: 20),
           GridView.count(
-            crossAxisCount: 3,
+            crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 8.0,
