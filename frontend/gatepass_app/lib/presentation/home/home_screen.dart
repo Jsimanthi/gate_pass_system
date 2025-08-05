@@ -68,6 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _logout() async {
     await _authService.logout();
     if (mounted) {
+      setState(() {
+        _selectedIndex = 0;
+      });
       // Use pushAndRemoveUntil to clear the stack and go to LoginScreen
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
