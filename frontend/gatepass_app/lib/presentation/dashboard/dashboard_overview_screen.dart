@@ -149,20 +149,6 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 30),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: _navigateToGatePassRequest,
-              icon: const Icon(Icons.note_add),
-              label: const Text(
-                'Request New Gate Pass',
-                style: TextStyle(fontSize: 18),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
-            ),
-          ),
         ],
       ),
     );
