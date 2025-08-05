@@ -42,11 +42,15 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
 
   // Helper function to extract results from paginated API response
   List<Map<String, dynamic>> _extractResults(dynamic response) {
-    debugPrint('DEBUG: _extractResults received response: $response'); // Debug print
+    debugPrint(
+      'DEBUG: _extractResults received response: $response',
+    ); // Debug print
     if (response is Map<String, dynamic> &&
         response.containsKey('results') &&
         response['results'] is List) {
-      debugPrint('DEBUG: Extracting results from paginated response.'); // Debug print
+      debugPrint(
+        'DEBUG: Extracting results from paginated response.',
+      ); // Debug print
       return List<Map<String, dynamic>>.from(response['results']);
     } else if (response is List) {
       // If the API directly returns a list (no pagination, less common for DRF)
@@ -67,17 +71,22 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
     });
     try {
       // Actual API call to your Django backend
-      final response = await _apiClient.get('api/gatepass/gatepasses/');
-      debugPrint('DEBUG: API call to /api/gatepass/gatepasses/ returned. Processing results.'); // Debug print
+      final response = await _apiClient.get('/api/gatepass/gatepasses/');
+      debugPrint(
+        'DEBUG: API call to /api/gatepass/gatepasses/ returned. Processing results.',
+      ); // Debug print
       _myGatePasses = _extractResults(response); // Process the response
       _filteredGatePasses = _myGatePasses;
-      debugPrint('DEBUG: _myGatePasses after extraction: $_myGatePasses'); // Debug print
-
+      debugPrint(
+        'DEBUG: _myGatePasses after extraction: $_myGatePasses',
+      ); // Debug print
     } catch (e) {
       // Catch any errors during API call or data processing
       setState(() {
         _errorMessage = 'Error loading your gate passes: $e';
-        debugPrint('MyPasses API Fetch Error: $_errorMessage'); // Print error to console
+        debugPrint(
+          'MyPasses API Fetch Error: $_errorMessage',
+        ); // Print error to console
       });
     } finally {
       setState(() {
@@ -89,9 +98,7 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Passes'),
-      ),
+      appBar: AppBar(title: const Text('My Passes')),
       body: _buildBody(),
     );
   }
@@ -163,11 +170,16 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
                   elevation: 3,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(color: Theme.of(context).primaryColor, width: 1),
+                    side: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                      width: 1,
+                    ),
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16.0),
-                    leading: _getStatusIcon(pass['status']), // Get icon based on status
+                    leading: _getStatusIcon(
+                      pass['status'],
+                    ), // Get icon based on status
                     title: Text(
                       // Access nested 'name' property for purpose with null checks
                       'Purpose: ${pass['purpose'] != null ? pass['purpose']['name'] ?? 'N/A' : 'N/A'}',
@@ -178,22 +190,36 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
                       children: [
                         Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
                         // Access nested 'name' property for gate with null checks
-                        Text('Gate: ${pass['gate'] != null ? pass['gate']['name'] ?? 'N/A' : 'N/A'}'),
+                        Text(
+                          'Gate: ${pass['gate'] != null ? pass['gate']['name'] ?? 'N/A' : 'N/A'}',
+                        ),
                         Text('Status: ${pass['status'] ?? 'N/A'}'),
                         // Conditionally display vehicle and driver if they exist and are not null
-                        if (pass['vehicle'] != null && pass['vehicle']['vehicle_number'] != null)
+                        if (pass['vehicle'] != null &&
+                            pass['vehicle']['vehicle_number'] != null)
                           Text('Vehicle: ${pass['vehicle']['vehicle_number']}'),
-                        if (pass['driver'] != null && pass['driver']['name'] != null)
+                        if (pass['driver'] != null &&
+                            pass['driver']['name'] != null)
                           Text('Driver: ${pass['driver']['name']}'),
                         // Format and display entry/exit times using intl package with null checks
-                        Text('Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}'),
-                        Text('Exit: ${pass['exit_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['exit_time'])) : 'N/A'}'),
-                        Text('Created At: ${pass['created_at'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['created_at'])) : 'N/A'}'),
+                        Text(
+                          'Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}',
+                        ),
+                        Text(
+                          'Exit: ${pass['exit_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['exit_time'])) : 'N/A'}',
+                        ),
+                        Text(
+                          'Created At: ${pass['created_at'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['created_at'])) : 'N/A'}',
+                        ),
                         // Conditionally display created_by and approved_by usernames with null checks
-                        if (pass['created_by'] != null && pass['created_by']['username'] != null)
+                        if (pass['created_by'] != null &&
+                            pass['created_by']['username'] != null)
                           Text('Created By: ${pass['created_by']['username']}'),
-                        if (pass['approved_by'] != null && pass['approved_by']['username'] != null)
-                          Text('Approved By: ${pass['approved_by']['username']}'),
+                        if (pass['approved_by'] != null &&
+                            pass['approved_by']['username'] != null)
+                          Text(
+                            'Approved By: ${pass['approved_by']['username']}',
+                          ),
                       ],
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -217,8 +243,10 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
 
   // Helper function to get status icon based on status string
   Icon _getStatusIcon(String? status) {
-    if (status == null) return const Icon(Icons.info_outline, color: Colors.grey);
-    switch (status.toUpperCase()) { // Use toUpperCase to match Django's constants
+    if (status == null)
+      return const Icon(Icons.info_outline, color: Colors.grey);
+    switch (status.toUpperCase()) {
+      // Use toUpperCase to match Django's constants
       case 'APPROVED':
         return const Icon(Icons.check_circle, color: Colors.green);
       case 'PENDING':
@@ -243,7 +271,12 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
           _buildFilterButton('PENDING', Icons.hourglass_empty),
           _buildFilterButton('REJECTED', Icons.cancel),
           IconButton(
-            icon: Icon(Icons.sort, color: _isSortedByDate ? Theme.of(context).primaryColor : Colors.grey),
+            icon: Icon(
+              Icons.sort,
+              color: _isSortedByDate
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
+            ),
             onPressed: _sortPasses,
           ),
         ],
@@ -255,7 +288,9 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
     return IconButton(
       onPressed: () => _filterPasses(status),
       icon: Icon(icon),
-      color: _selectedStatus == status ? Theme.of(context).primaryColor : Colors.grey,
+      color: _selectedStatus == status
+          ? Theme.of(context).primaryColor
+          : Colors.grey,
     );
   }
 
@@ -265,7 +300,9 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       if (status == 'All') {
         _filteredGatePasses = _myGatePasses;
       } else {
-        _filteredGatePasses = _myGatePasses.where((pass) => pass['status'] == status).toList();
+        _filteredGatePasses = _myGatePasses
+            .where((pass) => pass['status'] == status)
+            .toList();
       }
     });
   }
@@ -277,7 +314,9 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
         try {
           final dateA = DateTime.parse(a['created_at']);
           final dateB = DateTime.parse(b['created_at']);
-          return _isSortedByDate ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
+          return _isSortedByDate
+              ? dateB.compareTo(dateA)
+              : dateA.compareTo(dateB);
         } catch (e) {
           return 0;
         }
@@ -293,9 +332,7 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
         decoration: InputDecoration(
           hintText: 'Search by applicant name or vehicle number',
           prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onChanged: _searchPasses,
       ),
@@ -309,9 +346,11 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       } else {
         _filteredGatePasses = _myGatePasses.where((pass) {
           final applicantName = pass['person_name']?.toLowerCase() ?? '';
-          final vehicleNumber = pass['vehicle']?['vehicle_number']?.toLowerCase() ?? '';
+          final vehicleNumber =
+              pass['vehicle']?['vehicle_number']?.toLowerCase() ?? '';
           final lowerCaseQuery = query.toLowerCase();
-          return applicantName.contains(lowerCaseQuery) || vehicleNumber.contains(lowerCaseQuery);
+          return applicantName.contains(lowerCaseQuery) ||
+              vehicleNumber.contains(lowerCaseQuery);
         }).toList();
       }
     });
