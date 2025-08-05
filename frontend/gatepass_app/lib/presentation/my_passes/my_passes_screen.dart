@@ -313,8 +313,8 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
       _isSortedByDate = !_isSortedByDate;
       _filteredGatePasses.sort((a, b) {
         try {
-          final dateA = DateTime.parse(a['created_at']);
-          final dateB = DateTime.parse(b['created_at']);
+          final dateA = DateFormat('dd-MM-yyyy, hh:mm:ss a').parse(a['created_at']);
+          final dateB = DateFormat('dd-MM-yyyy, hh:mm:ss a').parse(b['created_at']);
           return _isSortedByDate
               ? dateB.compareTo(dateA)
               : dateA.compareTo(dateB);
