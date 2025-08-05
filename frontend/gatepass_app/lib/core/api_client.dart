@@ -7,7 +7,8 @@ import 'package:flutter/foundation.dart'; // Import for debugPrint
 
 class ApiClient {
   final String _baseUrl;
-  AuthService? _authService; // Made nullable to handle circular dependency during initialization
+  AuthService?
+  _authService; // Made nullable to handle circular dependency during initialization
 
   // Constructor now requires baseUrl and AuthService instance (can be null initially)
   ApiClient(this._baseUrl, this._authService);
@@ -24,10 +25,12 @@ class ApiClient {
       'Accept': 'application/json', // Added Accept header for consistency
     };
     // Use null-aware assignment for cleaner code
-    customToken ??= await _authService?.getAccessToken(); // Access via ? for nullable _authService
+    customToken ??= await _authService
+        ?.getAccessToken(); // Access via ? for nullable _authService
 
     if (customToken != null && customToken.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $customToken'; // Using Bearer token as per your Django setup
+      headers['Authorization'] =
+          'Bearer $customToken'; // Using Bearer token as per your Django setup
     }
     return headers;
   }
@@ -80,7 +83,9 @@ class ApiClient {
     String? customToken, // Corrected parameter name
   }) async {
     final url = Uri.parse('$_baseUrl$endpoint');
-    final headers = await _getHeaders(customToken: customToken); // Corrected parameter name here too
+    final headers = await _getHeaders(
+      customToken: customToken,
+    ); // Corrected parameter name here too
 
     debugPrint('API PUT Request to: $url');
     debugPrint('Headers: $headers');
@@ -121,13 +126,16 @@ class ApiClient {
         try {
           return json.decode(response.body);
         } catch (e) {
-          debugPrint('Warning: Non-JSON 2xx response for ${response.request?.url}: ${response.body}');
+          debugPrint(
+            'Warning: Non-JSON 2xx response for ${response.request?.url}: ${response.body}',
+          );
           return {'message': 'Success, but response body is not valid JSON'};
         }
       }
       return null;
     } else {
-      String errorMessage = 'Failed to load data. Status code: ${response.statusCode}';
+      String errorMessage =
+          'Failed to load data. Status code: ${response.statusCode}';
       if (response.body.isNotEmpty) {
         try {
           final errorData = json.decode(response.body);
@@ -139,19 +147,21 @@ class ApiClient {
             errorMessage = 'Error response: ${response.body}';
           }
         } catch (e) {
-          errorMessage = 'Failed to parse error response (Non-JSON or malformed): ${response.body}';
+          errorMessage =
+              'Failed to parse error response (Non-JSON or malformed): ${response.body}';
         }
       }
-      debugPrint('API Error: $errorMessage (URL: ${response.request?.url}, Status: ${response.statusCode})');
+      debugPrint(
+        'API Error: $errorMessage (URL: ${response.request?.url}, Status: ${response.statusCode})',
+      );
       throw Exception(errorMessage);
     }
   }
 
   Future<Map<String, dynamic>> verifyQrCode(String qrCode) async {
-    final response = await post(
-      'api/gate-operations/scan_qr_code/',
-      {'qr_code_data': qrCode},
-    );
+    final response = await post('/api/gate-operations/scan_qr_code/', {
+      'qr_code_data': qrCode,
+    });
     return response;
   }
 }

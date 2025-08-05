@@ -8,23 +8,23 @@ import 'package:gatepass_app/presentation/admin/admin_screen.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-Future main() async {
-  await dotenv.load(fileName: ".env");
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final sharedPreferences = await SharedPreferences.getInstance();
+  await dotenv.load(fileName: ".env");
 
+  final sharedPreferences = await SharedPreferences.getInstance();
   final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://127.0.0.1:8000';
 
-  // Initialize AuthService first with a temporary null for ApiClient
+  // The initialization order is critical to avoid a null apiClient in AuthService
+  // 1. Create a dummy AuthService instance
   final authService = AuthService(sharedPreferences, null);
 
-  // Initialize ApiClient with the authService instance
+  // 2. Create the ApiClient instance, providing the authService
   final apiClient = ApiClient(baseUrl, authService);
 
-  // Now, set the fully initialized ApiClient instance to AuthService
+  // 3. Set the fully initialized apiClient instance in authService
   authService.setApiClient(apiClient);
 
   runApp(MyApp(authService: authService, apiClient: apiClient));
@@ -51,9 +51,7 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
           centerTitle: true,
         ),
-        // FIX: Change CardTheme() to CardThemeData()
         cardTheme: CardThemeData(
-          // Changed from CardTheme()
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -83,15 +81,15 @@ class MyApp extends StatelessWidget {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
+          } else if (snapshot.hasError) {
+            return Scaffold(
+              body: Center(
+                child: Text('Error checking login status: ${snapshot.error}'),
+              ),
+            );
           } else {
-            if (snapshot.hasError) {
-              return Scaffold(
-                body: Center(
-                  child: Text('Error checking login status: ${snapshot.error}'),
-                ),
-              );
-            }
             if (snapshot.hasData && snapshot.data == true) {
+              // The original HomeScreen is back
               return HomeScreen(apiClient: apiClient, authService: authService);
             } else {
               return LoginScreen(
@@ -108,8 +106,7 @@ class MyApp extends StatelessWidget {
             LoginScreen(authService: authService, apiClient: apiClient),
         '/home': (context) =>
             HomeScreen(apiClient: apiClient, authService: authService),
-        '/reports': (context) =>
-            ReportsScreen(apiClient: apiClient),
+        '/reports': (context) => ReportsScreen(apiClient: apiClient),
         '/admin': (context) =>
             AdminScreen(apiClient: apiClient, authService: authService),
       },

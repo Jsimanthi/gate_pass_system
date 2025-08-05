@@ -6,7 +6,6 @@ import 'package:mockito/mockito.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:mockito/annotations.dart';
 import 'qr_scanner_test.mocks.dart';
-import 'dart:io';
 
 @GenerateMocks([ApiClient])
 void main() {

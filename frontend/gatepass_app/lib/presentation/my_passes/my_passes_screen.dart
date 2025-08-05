@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
-import 'package:flutter/foundation.dart'; // Import for debugPrint
+// Import for debugPrint
 import 'package:gatepass_app/presentation/my_passes/my_pass_details_screen.dart';
 
 class MyPassesScreen extends StatefulWidget {
@@ -243,8 +243,9 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
 
   // Helper function to get status icon based on status string
   Icon _getStatusIcon(String? status) {
-    if (status == null)
+    if (status == null) {
       return const Icon(Icons.info_outline, color: Colors.grey);
+    }
     switch (status.toUpperCase()) {
       // Use toUpperCase to match Django's constants
       case 'APPROVED':

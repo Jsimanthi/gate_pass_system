@@ -1,22 +1,19 @@
 // File: lib/services/auth_service.dart
 
-import 'dart:convert';
-import 'package:gatepass_app/core/api_client.dart'; // Ensure this is imported
+import 'package:gatepass_app/core/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart'; // Import for debugPrint
+import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthService {
   final SharedPreferences _prefs;
-  ApiClient? _apiClient; // Made nullable, will be set after init
+  ApiClient? _apiClient;
 
   static const String _accessTokenKey = 'accessToken';
   static const String _refreshTokenKey = 'refreshToken';
 
-  // Constructor now requires only SharedPreferences for initial setup
-  AuthService(this._prefs, this._apiClient); // Keep apiClient in constructor, but allow for initial null
+  AuthService(this._prefs, this._apiClient);
 
-  // New method to set ApiClient after it's fully initialized in main.dart
   void setApiClient(ApiClient client) {
     _apiClient = client;
   }
@@ -24,20 +21,26 @@ class AuthService {
   // --- Login Method ---
   Future<Map<String, dynamic>> login(String username, String password) async {
     if (_apiClient == null) {
-      return {'success': false, 'message': 'API Client not initialized in AuthService.'};
+      return {
+        'success': false,
+        'message': 'API Client not initialized in AuthService.',
+      };
     }
     try {
-      final response = await _apiClient!.post( // Use _apiClient! assuming it's set
-        '/api/token/', // Your Django REST Framework Simple JWT token endpoint
-        {'username': username, 'password': password},
-      );
+      final response = await _apiClient!.post('/api/token/', {
+        'username': username,
+        'password': password,
+      });
 
       if (response.containsKey('access') && response.containsKey('refresh')) {
         await _prefs.setString(_accessTokenKey, response['access']);
         await _prefs.setString(_refreshTokenKey, response['refresh']);
         return {'success': true, 'message': 'Login successful'};
       } else {
-        return {'success': false, 'message': 'Invalid response from server: Token not found'};
+        return {
+          'success': false,
+          'message': 'Invalid response from server: Token not found',
+        };
       }
     } catch (e) {
       String errorMessage = 'An unknown error occurred: ${e.toString()}';
@@ -45,9 +48,12 @@ class AuthService {
         if (e.toString().contains('401')) {
           errorMessage = 'Invalid credentials. Please try again.';
         } else if (e.toString().contains('400')) {
-          errorMessage = 'Bad request. Check username/password format or server logs.';
-        } else if (e.toString().contains('Failed host lookup') || e.toString().contains('Connection refused')) {
-          errorMessage = 'Cannot connect to server. Check your network or server address.';
+          errorMessage =
+              'Bad request. Check username/password format or server logs.';
+        } else if (e.toString().contains('Failed host lookup') ||
+            e.toString().contains('Connection refused')) {
+          errorMessage =
+              'Cannot connect to server. Check your network or server address.';
         } else {
           errorMessage = e.toString().replaceFirst('Exception: ', '');
         }
@@ -66,7 +72,14 @@ class AuthService {
 
   // --- Get Access Token ---
   Future<String?> getAccessToken() async {
-    return _prefs.getString(_accessTokenKey);
+    try {
+      final token = _prefs.getString(_accessTokenKey);
+      debugPrint('AuthService.getAccessToken(): Retrieved token from prefs.');
+      return token;
+    } catch (e) {
+      debugPrint('AuthService.getAccessToken(): Error retrieving token: $e');
+      return null;
+    }
   }
 
   // --- Get Refresh Token ---
@@ -76,8 +89,16 @@ class AuthService {
 
   // --- Check if user is logged in (has an access token) ---
   Future<bool> isLoggedIn() async {
-    final accessToken = await getAccessToken();
-    return accessToken != null && accessToken.isNotEmpty;
+    debugPrint('AuthService.isLoggedIn(): Method called.');
+    try {
+      final accessToken = await getAccessToken();
+      final bool isLoggedIn = accessToken != null && accessToken.isNotEmpty;
+      debugPrint('AuthService.isLoggedIn(): Result is $isLoggedIn');
+      return isLoggedIn;
+    } catch (e) {
+      debugPrint('AuthService.isLoggedIn(): An unhandled error occurred: $e');
+      return false;
+    }
   }
 
   // --- Get User Role ---

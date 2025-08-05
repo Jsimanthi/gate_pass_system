@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
-import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart'; // For navigating to request screen
+import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart';
 
 class DashboardOverviewScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -108,16 +108,17 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Welcome, User!', // You might want to display the actual username here
+            'Welcome, User!',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           GridView.count(
             crossAxisCount: 3,
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(), // Disable scrolling inside GridView
+            physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 8.0,
             crossAxisSpacing: 8.0,
+            childAspectRatio: 0.85,
             children: <Widget>[
               _buildDashboardCard(
                 context,
@@ -166,15 +167,21 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
           children: <Widget>[
             Icon(icon, size: 30, color: color),
             const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            Flexible(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             const SizedBox(height: 5),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: color),
+            Flexible(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: color),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
