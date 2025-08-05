@@ -8,6 +8,7 @@ import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_sc
 import 'package:gatepass_app/presentation/profile/profile_screen.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
+import 'package:gatepass_app/presentation/admin/admin_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -108,8 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedIndex,
       ), // Display the selected screen
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
@@ -132,8 +133,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Reports',
           ),
           if (_isAdmin)
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.admin_panel_settings),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.admin_panel_settings),
               label: 'Admin',
             ),
         ],
