@@ -111,44 +111,48 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Gate Pass Details')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              _buildPassDetails(),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _captureAndSave,
-                      icon: const Icon(Icons.download),
-                      label: const Text('Download'),
-                    ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _captureAndSave,
+                    icon: const Icon(Icons.download),
+                    label: const Text('Download'),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _captureAndShare,
-                      icon: const Icon(Icons.share),
-                      label: const Text('Send'),
-                    ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _captureAndShare,
+                    icon: const Icon(Icons.share),
+                    label: const Text('Send'),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _captureAndPrint,
-                      icon: const Icon(Icons.print),
-                      label: const Text('Print'),
-                    ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _captureAndPrint,
+                    icon: const Icon(Icons.print),
+                    label: const Text('Print'),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildPassDetails(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
