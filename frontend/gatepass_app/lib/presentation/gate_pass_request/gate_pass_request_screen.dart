@@ -189,7 +189,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           'alcohol_test_required': _alcoholTestRequired,
         };
 
-        await _apiClient.post('api/gatepass/gatepasses/', data);
+        await _apiClient.post('/api/gatepass/gatepasses/', data);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
