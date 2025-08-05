@@ -171,8 +171,8 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
         DateTime? entryTime;
         DateTime? exitTime;
         try {
-          entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parseStrict(_entryTimeController.text, true);
-          exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parseStrict(_exitTimeController.text, true);
+          entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_entryTimeController.text, true);
+          exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_exitTimeController.text, true);
         } catch (e) {
           print('Error parsing date: $e');
         }
