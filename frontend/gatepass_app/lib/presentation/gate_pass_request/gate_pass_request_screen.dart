@@ -505,18 +505,18 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                             width: isLargeScreen
                                 ? formFieldWidth
                                 : double.infinity,
-                                child: CheckboxListTile(
-                            title: const Text('Alcohol Test Required'),
-                            value: _alcoholTestRequired,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _alcoholTestRequired = value!;
-                              });
-                            },
+                            child: CheckboxListTile(
+                              title: const Text('Alcohol Test Required'),
+                              value: _alcoholTestRequired,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  _alcoholTestRequired = value!;
+                                });
+                              },
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 30),
+                          const SizedBox(height: 30),
 
                           _buildSectionTitle('Vehicle & Driver (Optional)'),
                           SizedBox(
