@@ -69,9 +69,9 @@ class _AdminScreenState extends State<AdminScreen> {
       await _apiClient.post('/api/gatepass/gatepasses/$passId/approve/', {});
       _fetchAllGatePasses();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to approve pass: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to approve pass: $e')));
     }
   }
 
@@ -80,18 +80,16 @@ class _AdminScreenState extends State<AdminScreen> {
       await _apiClient.post('/api/gatepass/gatepasses/$passId/reject/', {});
       _fetchAllGatePasses();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to reject pass: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to reject pass: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin - All Passes'),
-      ),
+      appBar: AppBar(title: const Text('Manage Passes')),
       body: _buildBody(),
     );
   }
@@ -125,9 +123,7 @@ class _AdminScreenState extends State<AdminScreen> {
     }
 
     if (_allGatePasses.isEmpty) {
-      return const Center(
-        child: Text('No gate passes found.'),
-      );
+      return const Center(child: Text('No gate passes found.'));
     }
 
     return Column(
@@ -145,14 +141,16 @@ class _AdminScreenState extends State<AdminScreen> {
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
                   child: ListTile(
                     title: Text(
-                        'Purpose: ${pass['purpose'] != null ? pass['purpose']['name'] ?? 'N/A' : 'N/A'}'),
+                      'Purpose: ${pass['purpose'] != null ? pass['purpose']['name'] ?? 'N/A' : 'N/A'}',
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Applicant: ${pass['person_name'] ?? 'N/A'}'),
                         Text('Status: ${pass['status'] ?? 'N/A'}'),
                         Text(
-                            'Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}'),
+                          'Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}',
+                        ),
                       ],
                     ),
                     trailing: pass['status'] == 'PENDING'
@@ -160,11 +158,17 @@ class _AdminScreenState extends State<AdminScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.check, color: Colors.green),
+                                icon: const Icon(
+                                  Icons.check,
+                                  color: Colors.green,
+                                ),
                                 onPressed: () => _approvePass(pass['id']),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, color: Colors.red),
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                ),
                                 onPressed: () => _rejectPass(pass['id']),
                               ),
                             ],
@@ -174,8 +178,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              MyPassDetailsScreen(pass: pass),
+                          builder: (context) => MyPassDetailsScreen(pass: pass),
                         ),
                       );
                     },
@@ -220,8 +223,9 @@ class _AdminScreenState extends State<AdminScreen> {
       if (status == 'All') {
         _filteredGatePasses = _allGatePasses;
       } else {
-        _filteredGatePasses =
-            _allGatePasses.where((pass) => pass['status'] == status).toList();
+        _filteredGatePasses = _allGatePasses
+            .where((pass) => pass['status'] == status)
+            .toList();
       }
     });
   }
