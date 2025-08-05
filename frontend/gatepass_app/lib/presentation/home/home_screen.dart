@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Reports',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.admin_panel_settings),
+              icon: Icon(Icons.sensor_door),
               label: 'Manage Passes',
             ),
           ]);
@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ]);
           _navBarItems.addAll([
             const BottomNavigationBarItem(
-              icon: Icon(Icons.admin_panel_settings),
+              icon: Icon(Icons.sensor_door),
               label: 'Manage Passes',
             ),
             const BottomNavigationBarItem(
