@@ -178,7 +178,7 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, size: 40, color: color),
+            Icon(icon, size: 30, color: color),
             const SizedBox(height: 10),
             Text(
               title,
