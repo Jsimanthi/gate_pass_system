@@ -168,8 +168,8 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
       });
 
       try {
-        final entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_entryTimeController.text);
-        final exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_exitTimeController.text);
+        final entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_entryTimeController.text, true);
+        final exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_exitTimeController.text, true);
 
         final Map<String, dynamic> data = {
           'person_name': _personNameController.text,
@@ -180,8 +180,8 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           'person_address': _personAddressController.text.isNotEmpty
               ? _personAddressController.text
               : null,
-          'entry_time': entryTime.toIso8601String(),
-          'exit_time': exitTime.toIso8601String(),
+          'entry_time': entryTime.toUtc().toIso8601String(),
+          'exit_time': exitTime.toUtc().toIso8601String(),
           'purpose_id': _selectedPurposeId,
           'gate_id': _selectedGateId,
           'vehicle_id': _selectedVehicleId,
