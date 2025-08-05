@@ -12,7 +12,12 @@ class GateLogSerializer(serializers.ModelSerializer):
     """
     Serializer for the GateLog model.
     """
+    timestamp = serializers.SerializerMethodField()
+
     class Meta:
         model = GateLog
         fields = '__all__'
-        read_only_fields = ('gate_pass', 'security_personnel', 'timestamp', 'action', 'status', 'reason', 'scanned_data')
+        read_only_fields = ('gate_pass', 'security_personnel', 'action', 'status', 'reason', 'scanned_data')
+
+    def get_timestamp(self, obj):
+        return obj.timestamp.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.timestamp else None

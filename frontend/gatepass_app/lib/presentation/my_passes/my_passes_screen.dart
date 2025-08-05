@@ -203,13 +203,13 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
                           Text('Driver: ${pass['driver']['name']}'),
                         // Format and display entry/exit times using intl package with null checks
                         Text(
-                          'Entry: ${pass['entry_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['entry_time'])) : 'N/A'}',
+                          'Entry: ${pass['entry_time'] != null ? DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(pass['entry_time'])) : 'N/A'}',
                         ),
                         Text(
-                          'Exit: ${pass['exit_time'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['exit_time'])) : 'N/A'}',
+                          'Exit: ${pass['exit_time'] != null ? DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(pass['exit_time'])) : 'N/A'}',
                         ),
                         Text(
-                          'Created At: ${pass['created_at'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(pass['created_at'])) : 'N/A'}',
+                          'Created At: ${pass['created_at'] != null ? DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(pass['created_at'])) : 'N/A'}',
                         ),
                         // Conditionally display created_by and approved_by usernames with null checks
                         if (pass['created_by'] != null &&
