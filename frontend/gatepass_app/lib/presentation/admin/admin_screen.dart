@@ -195,10 +195,13 @@ class _AdminScreenState extends State<AdminScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildFilterButton('All'),
-          _buildFilterButton('PENDING'),
-          _buildFilterButton('APPROVED'),
-          _buildFilterButton('REJECTED'),
+          Expanded(child: _buildFilterButton('All')),
+          const SizedBox(width: 8),
+          Expanded(child: _buildFilterButton('PENDING')),
+          const SizedBox(width: 8),
+          Expanded(child: _buildFilterButton('APPROVED')),
+          const SizedBox(width: 8),
+          Expanded(child: _buildFilterButton('REJECTED')),
         ],
       ),
     );
