@@ -1,7 +1,19 @@
 # backend/apps/users/serializers.py
 
 from rest_framework import serializers
-from .models import CustomUser # Assuming CustomUser is your user model
+from .models import CustomUser
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        token['is_staff'] = user.is_staff
+
+        return token
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
