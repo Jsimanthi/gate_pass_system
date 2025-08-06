@@ -6,6 +6,8 @@ from apps.gatepass.models import GatePass
 from .models import GateLog
 from .serializers import GateLogSerializer, QRCodeScanSerializer
 import json
+from rest_framework.generics import ListAPIView
+from rest_framework.pagination import PageNumberPagination
 
 class ScanQRCodeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -78,3 +80,15 @@ class GateLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GateLog.objects.all()
     serializer_class = GateLogSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class GateOperationsDashboardView(ListAPIView):
+    queryset = GateLog.objects.order_by('-timestamp')
+    serializer_class = GateLogSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = StandardResultsSetPagination

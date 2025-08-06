@@ -49,6 +49,16 @@ class GatePass(models.Model):
     alcohol_test_required = models.BooleanField(default=False)
     alcohol_test_photo = models.ImageField(upload_to='alcohol_tests/', blank=True, null=True)
 
+    # For recurring gate passes
+    is_recurring = models.BooleanField(default=False)
+    recurrence_end_date = models.DateField(null=True, blank=True)
+    FREQUENCY_CHOICES = [
+        ('DAILY', 'Daily'),
+        ('WEEKLY', 'Weekly'),
+        ('MONTHLY', 'Monthly'),
+    ]
+    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, null=True, blank=True)
+
     def __str__(self):
         return f"Gate Pass for {self.person_name} ({self.status})"
 
@@ -78,3 +88,41 @@ class GatePass(models.Model):
         img.save(buffer, format="PNG")
         filename = f'gatepass_{self.id}.png'
         self.qr_code.save(filename, File(buffer), save=False)
+
+
+class PreApprovedVisitor(models.Model):
+    name = models.CharField(max_length=255)
+    nid = models.CharField(max_length=100, unique=True)
+    phone = models.CharField(max_length=100)
+    company = models.CharField(max_length=255)
+    approved_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='approved_visitors')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.nid})"
+
+
+class GatePassTemplate(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    purpose = models.ForeignKey(Purpose, on_delete=models.SET_NULL, null=True)
+    gate = models.ForeignKey(Gate, on_delete=models.SET_NULL, null=True)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True)
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='gatepass_templates')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class GatePassHistory(models.Model):
+    gate_pass = models.ForeignKey(GatePass, on_delete=models.CASCADE, related_name='history')
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    action = models.CharField(max_length=50)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    details = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.gate_pass} - {self.action} by {self.user} at {self.timestamp}'

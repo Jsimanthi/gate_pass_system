@@ -7,7 +7,8 @@ import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.dart';
 import 'package:gatepass_app/presentation/my_passes/my_passes_screen.dart';
 import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart';
-import 'package:gatepass_app/presentation/profile/profile_screen.dart';
+import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
+import 'package:gatepass_app/services/local_database_service.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
 import 'package:gatepass_app/presentation/admin/admin_screen.dart';
@@ -30,18 +31,41 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   late final ApiClient _apiClient;
   late final AuthService _authService;
+  final LocalDatabaseService _localDatabaseService = LocalDatabaseService.instance;
+  List<Map<String, dynamic>> _offlineScans = [];
 
   @override
   void initState() {
     super.initState();
     _apiClient = widget.apiClient;
     _authService = widget.authService;
+    _loadOfflineScans();
+  }
+
+  Future<void> _loadOfflineScans() async {
+    final scans = await _localDatabaseService.getScannedQRCodes();
+    setState(() {
+      _offlineScans = scans;
+    });
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _syncOfflineScans() async {
+    for (var scan in _offlineScans) {
+      try {
+        await _apiClient.verifyQrCode(scan['qr_code_data']);
+        await _localDatabaseService.deleteScannedQRCode(scan['id']);
+      } catch (e) {
+        // Handle sync error, maybe show a message to the user
+        print('Error syncing QR code: ${scan['qr_code_data']}. Error: $e');
+      }
+    }
+    _loadOfflineScans();
   }
 
   void _logout() async {
@@ -220,6 +244,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 tooltip: 'Profile',
               ),
+              if (_offlineScans.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.sync),
+                  onPressed: _syncOfflineScans,
+                  tooltip: 'Sync Offline Data',
+                ),
+              if (_offlineScans.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.sync),
+                  onPressed: _syncOfflineScans,
+                  tooltip: 'Sync Offline Data',
+                ),
               IconButton(
                 icon: const Icon(Icons.logout),
                 onPressed: _logout,

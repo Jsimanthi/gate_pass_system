@@ -1,7 +1,10 @@
-from django.urls import path
-from .views import GateLogListView, GateLogSummaryView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import ReportViewSet
+
+router = DefaultRouter()
+router.register(r'', ReportViewSet, basename='report')
 
 urlpatterns = [
-    path('logs/', GateLogListView.as_view(), name='gate-log-list'),
-    path('logs/summary/', GateLogSummaryView.as_view(), name='gate-log-summary'),
+    path('', include(router.urls)),
 ]

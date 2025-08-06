@@ -5,6 +5,8 @@ import 'package:gatepass_app/core/api_client.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:gatepass_app/services/local_database_service.dart';
 
 class QrScannerScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -19,9 +21,9 @@ class QrScannerScreenState extends State<QrScannerScreen> {
   MobileScannerController controller = MobileScannerController();
   bool _isProcessing = false;
   String? _scanResult;
-  String? _verificationResult;
   File? _image;
   final ImagePicker _picker = ImagePicker();
+  final LocalDatabaseService _localDatabaseService = LocalDatabaseService.instance;
 
   void handleScan(String value) async {
     controller.stop();
@@ -31,31 +33,44 @@ class QrScannerScreenState extends State<QrScannerScreen> {
       _scanResult = value;
     });
 
-    try {
-      final result = await widget.apiClient.verifyQrCode(value);
-
-      setState(() {
-        _isProcessing = false;
-      });
-
-      if (result['alcohol_test_required'] == true) {
-        _showAlcoholTestDialog(result['gatepass_id']);
-      } else {
-        _showResultDialog(
-          title: result['message'] ?? 'Validation Successful',
-          details: result['gate_pass_details'] ?? {},
-          isSuccess: true,
-        );
-      }
-    } catch (e) {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      await _localDatabaseService.insertScannedQRCode(value);
       setState(() {
         _isProcessing = false;
       });
       _showResultDialog(
-        title: 'Validation Failed',
-        details: {'error': e.toString()},
-        isSuccess: false,
+        title: 'Offline Scan',
+        details: {'message': 'QR code saved locally. Sync when online.'},
+        isSuccess: true,
       );
+    } else {
+      try {
+        final result = await widget.apiClient.verifyQrCode(value);
+
+        setState(() {
+          _isProcessing = false;
+        });
+
+        if (result['alcohol_test_required'] == true) {
+          _showAlcoholTestDialog(result['gatepass_id']);
+        } else {
+          _showResultDialog(
+            title: result['message'] ?? 'Validation Successful',
+            details: result['gate_pass_details'] ?? {},
+            isSuccess: true,
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isProcessing = false;
+        });
+        _showResultDialog(
+          title: 'Validation Failed',
+          details: {'error': e.toString()},
+          isSuccess: false,
+        );
+      }
     }
   }
 
