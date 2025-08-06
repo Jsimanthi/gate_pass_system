@@ -4,11 +4,13 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import GatePass
-from .serializers import GatePassSerializer
+from .models import GatePass, PreApprovedVisitor, GatePassTemplate
+from .serializers import GatePassSerializer, PreApprovedVisitorSerializer, GatePassTemplateSerializer
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.views import APIView
+from datetime import date, timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 
 class DashboardSummaryView(APIView):
@@ -47,21 +49,91 @@ class GatePassViewSet(viewsets.ModelViewSet):
             self.permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in self.permission_classes]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        is_recurring = serializer.validated_data.get('is_recurring', False)
+
+        if is_recurring:
+            start_date = serializer.validated_data.get('entry_time').date()
+            end_date = serializer.validated_data.get('recurrence_end_date')
+            frequency = serializer.validated_data.get('frequency')
+
+            if not end_date or not frequency:
+                return Response(
+                    {"detail": "Recurrence end date and frequency are required for recurring gate passes."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            gate_passes_data = []
+            current_date = start_date
+            while current_date <= end_date:
+                entry_time = datetime.combine(current_date, serializer.validated_data.get('entry_time').time())
+                exit_time = datetime.combine(current_date, serializer.validated_data.get('exit_time').time())
+
+                validated_data = serializer.validated_data.copy()
+                validated_data.pop('is_recurring', None)
+                validated_data.pop('recurrence_end_date', None)
+                validated_data.pop('frequency', None)
+                validated_data['entry_time'] = entry_time
+                validated_data['exit_time'] = exit_time
+
+                purpose = validated_data.pop('purpose_id')
+                gate = validated_data.pop('gate_id')
+                vehicle = validated_data.pop('vehicle_id', None)
+                driver = validated_data.pop('driver_id', None)
+
+                gate_pass = GatePass.objects.create(
+                    purpose=purpose,
+                    gate=gate,
+                    vehicle=vehicle,
+                    driver=driver,
+                    created_by=request.user,
+                    **validated_data
+                )
+
+                person_nid = request.data.get('person_nid')
+                if person_nid and PreApprovedVisitor.objects.filter(nid=person_nid).exists():
+                    gate_pass.status = GatePass.APPROVED
+                    gate_pass.approved_by = request.user
+
+                gate_pass.generate_qr_code()
+                gate_pass.save()
+
+                gate_passes_data.append(self.get_serializer(gate_pass).data)
+
+                if frequency == 'DAILY':
+                    current_date += timedelta(days=1)
+                elif frequency == 'WEEKLY':
+                    current_date += timedelta(weeks=1)
+                elif frequency == 'MONTHLY':
+                    current_date += relativedelta(months=1)
+
+            return Response(gate_passes_data, status=status.HTTP_201_CREATED)
+        else:
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user, alcohol_test_required=self.request.data.get('alcohol_test_required', False))
-        # Optional: Send a notification that a new gate pass request has been submitted
-        # send_mail(
-        #     'New Gate Pass Request Submitted',
-        #     f'A new gate pass request (ID: {serializer.instance.id}) has been submitted by {self.request.user.username}.',
-        #     settings.DEFAULT_FROM_EMAIL,
-        #     ['approver@yourgatepasssystem.com'], # Replace with actual approver email or lookup
-        #     fail_silently=False,
-        # )
+        person_nid = self.request.data.get('person_nid')
+        if person_nid and PreApprovedVisitor.objects.filter(nid=person_nid).exists():
+            serializer.save(
+                created_by=self.request.user,
+                status=GatePass.APPROVED,
+                approved_by=self.request.user,
+                alcohol_test_required=self.request.data.get('alcohol_test_required', False)
+            )
+            gate_pass = serializer.instance
+            gate_pass.generate_qr_code()
+            gate_pass.save()
+        else:
+            serializer.save(created_by=self.request.user, alcohol_test_required=self.request.data.get('alcohol_test_required', False))
 
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff or user.is_superuser or user.role == 'Client Care':
+        if user.is_staff or user.is_superuser or user.groups.filter(name='Client Care').exists():
             return GatePass.objects.all()
         return GatePass.objects.filter(created_by=user)
 
@@ -111,6 +183,52 @@ class GatePassViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(gate_pass)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GatePassTemplateViewSet(viewsets.ModelViewSet):
+    queryset = GatePassTemplate.objects.all()
+    serializer_class = GatePassTemplateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in self.permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def create_gatepass(self, request, pk=None):
+        template = self.get_object()
+        data = request.data.copy()
+        data['purpose_id'] = template.purpose.id if template.purpose else None
+        data['gate_id'] = template.gate.id if template.gate else None
+        data['vehicle_id'] = template.vehicle.id if template.vehicle else None
+        data['driver_id'] = template.driver.id if template.driver else None
+
+        serializer = GatePassSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            self.check_object_permissions(request, template)
+            gate_pass = serializer.save(created_by=request.user)
+            return Response(GatePassSerializer(gate_pass).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PreApprovedVisitorViewSet(viewsets.ModelViewSet):
+    queryset = PreApprovedVisitor.objects.all()
+    serializer_class = PreApprovedVisitorSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            self.permission_classes = [permissions.IsAuthenticated]
+        else:
+            self.permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in self.permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(approved_by=self.request.user)
 
     @action(detail=True, methods=['post'])
     def alcohol_test(self, request, pk=None):

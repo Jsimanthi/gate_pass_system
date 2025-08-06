@@ -1,6 +1,8 @@
-# backend/apps/gate_operations/serializers.py
 from rest_framework import serializers
 from .models import GateLog
+from apps.gatepass.serializers import GatePassSerializer
+from apps.users.serializers import UserSerializer
+from apps.core_data.serializers import GateSerializer
 
 class QRCodeScanSerializer(serializers.Serializer):
     """
@@ -12,12 +14,14 @@ class GateLogSerializer(serializers.ModelSerializer):
     """
     Serializer for the GateLog model.
     """
+    gate_pass = GatePassSerializer(read_only=True)
+    security_personnel = UserSerializer(read_only=True)
+    gate = GateSerializer(read_only=True)
     timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = GateLog
         fields = '__all__'
-        read_only_fields = ('gate_pass', 'security_personnel', 'action', 'status', 'reason', 'scanned_data')
 
     def get_timestamp(self, obj):
         return obj.timestamp.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.timestamp else None

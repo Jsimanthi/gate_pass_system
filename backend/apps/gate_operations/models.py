@@ -15,6 +15,7 @@ class GateLog(models.Model):
     ]
 
     gate_pass = models.ForeignKey(GatePass, on_delete=models.CASCADE, null=True, blank=True)
+    gate = models.ForeignKey('core_data.Gate', on_delete=models.SET_NULL, null=True, blank=True)
     security_personnel = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)

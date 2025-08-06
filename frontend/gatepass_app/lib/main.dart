@@ -9,9 +9,11 @@ import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
 
   final sharedPreferences = await SharedPreferences.getInstance();

@@ -1,7 +1,7 @@
 # backend/apps/gatepass/serializers.py
 
 from rest_framework import serializers
-from .models import GatePass, Purpose, Gate
+from .models import GatePass, Purpose, Gate, PreApprovedVisitor, GatePassTemplate
 from apps.users.models import CustomUser
 from apps.vehicles.models import Vehicle
 from apps.drivers.models import Driver
@@ -95,7 +95,10 @@ class GatePassSerializer(serializers.ModelSerializer):
             'vehicle_id',
             'driver_id',
             'alcohol_test_required',
-            'alcohol_test_photo'
+            'alcohol_test_photo',
+            'is_recurring',
+            'recurrence_end_date',
+            'frequency'
         ]
         read_only_fields = [
             'id', 'qr_code', 'status', 'created_by', 'approved_by',
@@ -138,3 +141,15 @@ class GatePassSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return gate_pass
+
+
+class PreApprovedVisitorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PreApprovedVisitor
+        fields = '__all__'
+
+
+class GatePassTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GatePassTemplate
+        fields = '__all__'
