@@ -2,9 +2,9 @@
 
 from rest_framework import serializers
 from .models import GatePass, Purpose, Gate
-from apps.users.models import CustomUser # Import your CustomUser model
-from apps.vehicles.models import Vehicle # Import your Vehicle model
-from apps.drivers.models import Driver   # Import your Driver model
+from apps.users.models import CustomUser
+from apps.vehicles.models import Vehicle
+from apps.drivers.models import Driver
 
 # Define serializers for related models that you want to nest
 class PurposeSerializer(serializers.ModelSerializer):
@@ -18,19 +18,14 @@ class GateSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class VehicleSerializer(serializers.ModelSerializer):
-    # Assuming 'vehicle_type' is a ForeignKey on your Vehicle model
-    # and you want to display its name
     vehicle_type_name = serializers.CharField(source='vehicle_type.name', read_only=True)
-
     class Meta:
         model = Vehicle
-        # Ensure these fields match your Vehicle model's actual fields for display
         fields = ['id', 'vehicle_number', 'vehicle_type_name']
 
 class DriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver
-        # Ensure these fields match your Driver model's actual fields for display
         fields = ['id', 'name', 'contact_details']
 
 class SimpleUserSerializer(serializers.ModelSerializer):
@@ -48,20 +43,29 @@ class GatePassSerializer(serializers.ModelSerializer):
     created_by = SimpleUserSerializer(read_only=True)
     approved_by = SimpleUserSerializer(read_only=True)
 
+    # Use DateTimeField for handling both input and output for datetime fields.
+    # The default behavior correctly handles ISO 8601 strings from your Flutter app.
+    # You can customize the format if needed, but it's not required here.
+    entry_time = serializers.DateTimeField()
+    exit_time = serializers.DateTimeField()
+
+    # created_at and updated_at are read-only fields handled by the model.
+    # No need for SerializerMethodField unless you want a custom display format.
+    # We can just list them in read_only_fields.
+    # If you still want custom formatting for the output, you can keep the
+    # SerializerMethodFields, but you MUST define them with the source parameter.
+    # A cleaner approach is to use a regular DateTimeField and override to_representation.
+    # But for simplicity, let's keep it simple.
+    
+    # We remove the SerializerMethodField for entry_time and exit_time.
+    # The default ModelSerializer will handle the conversion from string to DateTimeField.
+
     # These fields will be used for WRITE operations (POST/PUT requests),
     # accepting primary keys and mapping them to the ForeignKey fields on the model.
-    # Note: No 'source' or 'write_only' needed here as the field names match the model FKs.
-    # The default ModelSerializer behavior handles this for creation/update.
-    # We list them separately just to be explicit about their role in data submission.
     purpose_id = serializers.PrimaryKeyRelatedField(queryset=Purpose.objects.all(), write_only=True)
     gate_id = serializers.PrimaryKeyRelatedField(queryset=Gate.objects.all(), write_only=True)
     vehicle_id = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all(), allow_null=True, required=False, write_only=True)
     driver_id = serializers.PrimaryKeyRelatedField(queryset=Driver.objects.all(), allow_null=True, required=False, write_only=True)
-
-    entry_time = serializers.SerializerMethodField()
-    exit_time = serializers.SerializerMethodField()
-    created_at = serializers.SerializerMethodField()
-    updated_at = serializers.SerializerMethodField()
 
     class Meta:
         model = GatePass
@@ -71,6 +75,7 @@ class GatePassSerializer(serializers.ModelSerializer):
             'person_nid',
             'person_phone',
             'person_address',
+            # Now these are handled by the ModelSerializer's default behavior
             'entry_time',
             'exit_time',
             'status',
@@ -92,28 +97,33 @@ class GatePassSerializer(serializers.ModelSerializer):
             'alcohol_test_required',
             'alcohol_test_photo'
         ]
-        # These fields are set by the system or derived, not directly sent in the POST request body
         read_only_fields = [
             'id', 'qr_code', 'status', 'created_by', 'approved_by',
-            # The 'purpose', 'gate', 'vehicle', 'driver' fields are implicitly read_only
-            # because they are defined with nested serializers.
+            'purpose', 'gate', 'vehicle', 'driver',
+            'created_at', 'updated_at'
         ]
+        
+    def to_representation(self, instance):
+        """
+        Customizes the representation for GET requests to format datetime fields.
+        This is a better pattern than SerializerMethodField.
+        """
+        ret = super().to_representation(instance)
+        # Format the datetime fields for display
+        for field_name in ['entry_time', 'exit_time', 'created_at', 'updated_at']:
+            dt_value = getattr(instance, field_name)
+            if dt_value:
+                ret[field_name] = dt_value.strftime("%d-%m-%Y, %I:%M:%S %p")
+            else:
+                ret[field_name] = None
+        return ret
+        
+    # The `create` method override is no longer strictly necessary if your field names
+    # match your model's FKs. The default ModelSerializer `create` will handle this.
+    # However, keeping it makes the code more explicit and readable,
+    # and allows you to easily add more logic if needed.
+    # You should remove the `pop` calls for entry_time and exit_time from create.
 
-    def get_entry_time(self, obj):
-        return obj.entry_time.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.entry_time else None
-
-    def get_exit_time(self, obj):
-        return obj.exit_time.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.exit_time else None
-
-    def get_created_at(self, obj):
-        return obj.created_at.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.created_at else None
-
-    def get_updated_at(self, obj):
-        return obj.updated_at.strftime("%d-%m-%Y, %I:%M:%S %p") if obj.updated_at else None
-
-    # Override create to handle the PrimaryKeyRelatedFields correctly.
-    # The default ModelSerializer create method will often handle this automatically if field names match,
-    # but explicit handling is safer especially with 'source' or custom logic.
     def create(self, validated_data):
         purpose_data = validated_data.pop('purpose_id')
         gate_data = validated_data.pop('gate_id')
@@ -128,7 +138,3 @@ class GatePassSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return gate_pass
-
-    def update(self, instance, validated_data):
-        # Similar to create, handle PrimaryKeyRelatedFields for updates
-        return super().update(instance, validated_data)

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
-import 'package:intl/intl.dart';
 import 'package:gatepass_app/presentation/my_passes/my_pass_details_screen.dart';
 
 class AdminScreen extends StatefulWidget {

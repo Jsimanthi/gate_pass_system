@@ -1,5 +1,3 @@
-// File: lib/presentation/gate_pass_request/gate_pass_request_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
@@ -28,8 +26,13 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
   final TextEditingController _personNidController = TextEditingController();
   final TextEditingController _personAddressController =
       TextEditingController();
-  final TextEditingController _entryTimeController = TextEditingController();
-  final TextEditingController _exitTimeController = TextEditingController();
+  // We no longer need these controllers to store the date strings.
+  // final TextEditingController _entryTimeController = TextEditingController();
+  // final TextEditingController _exitTimeController = TextEditingController();
+
+  // New state variables to hold the DateTime objects directly.
+  DateTime? _entryDateTime;
+  DateTime? _exitDateTime;
 
   String? _selectedPurposeId;
   String? _selectedGateId;
@@ -100,14 +103,13 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     }
   }
 
-  Future<void> _selectDateTime(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
+  Future<void> _selectDateTime(BuildContext context, bool isEntryTime) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: isEntryTime
+          ? _entryDateTime ?? DateTime.now()
+          : _exitDateTime ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime(2028),
       builder: (context, child) {
         return Theme(
@@ -122,7 +124,11 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     if (pickedDate != null) {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.now(),
+        initialTime: TimeOfDay.fromDateTime(
+          isEntryTime
+              ? _entryDateTime ?? DateTime.now()
+              : _exitDateTime ?? DateTime.now(),
+        ),
         builder: (context, child) {
           return Theme(
             data: ThemeData.light().copyWith(
@@ -141,10 +147,14 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           pickedTime.hour,
           pickedTime.minute,
         );
-        final String formattedDateTime = DateFormat(
-          "dd-MM-yyyy, hh:mm:ss a",
-        ).format(finalDateTime);
-        controller.text = formattedDateTime;
+
+        setState(() {
+          if (isEntryTime) {
+            _entryDateTime = finalDateTime;
+          } else {
+            _exitDateTime = finalDateTime;
+          }
+        });
       }
     }
   }
@@ -163,20 +173,21 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
         return;
       }
 
+      if (_entryDateTime == null || _exitDateTime == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select both entry and exit times.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       setState(() {
         _isSubmitting = true;
       });
 
       try {
-        DateTime? entryTime;
-        DateTime? exitTime;
-        try {
-          entryTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_entryTimeController.text, true);
-          exitTime = DateFormat("dd-MM-yyyy, hh:mm:ss a").parse(_exitTimeController.text, true);
-        } catch (e) {
-          print('Error parsing date: $e');
-        }
-
         final Map<String, dynamic> data = {
           'person_name': _personNameController.text,
           'person_phone': _personPhoneController.text,
@@ -186,8 +197,9 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           'person_address': _personAddressController.text.isNotEmpty
               ? _personAddressController.text
               : null,
-          'entry_time': entryTime?.toUtc().toIso8601String(),
-          'exit_time': exitTime?.toUtc().toIso8601String(),
+          // We now use the stored DateTime objects and convert them to UTC ISO 8601 strings for the API.
+          'entry_time': _entryDateTime!.toUtc().toIso8601String(),
+          'exit_time': _exitDateTime!.toUtc().toIso8601String(),
           'purpose_id': _selectedPurposeId,
           'gate_id': _selectedGateId,
           'vehicle_id': _selectedVehicleId,
@@ -211,9 +223,10 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           _personPhoneController.clear();
           _personNidController.clear();
           _personAddressController.clear();
-          _entryTimeController.clear();
-          _exitTimeController.clear();
           setState(() {
+            // Reset the DateTime variables as well.
+            _entryDateTime = null;
+            _exitDateTime = null;
             _selectedPurposeId = null;
             _selectedGateId = null;
             _selectedVehicleId = null;
@@ -244,8 +257,6 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     _personPhoneController.dispose();
     _personNidController.dispose();
     _personAddressController.dispose();
-    _entryTimeController.dispose();
-    _exitTimeController.dispose();
     super.dispose();
   }
 
@@ -267,13 +278,11 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final bool isLargeScreen = screenWidth > 600;
 
-    // Define a consistent width for the form fields, ensuring readability.
-    const double formFieldWidth = 450; // Maintained consistent content width
+    const double formFieldWidth = 450;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Request Gate Pass')),
       body: SingleChildScrollView(
-        // Added this SingleChildScrollView for overall screen scrolling
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null
@@ -298,28 +307,24 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                 ),
               )
             : Center(
-                // Center the card horizontally on the screen
                 child: Card(
-                  // Direct Card here, let its margin define width
                   margin: const EdgeInsets.symmetric(
                     horizontal: 12.0,
                     vertical: 20.0,
-                  ), // Smaller horizontal margin for "almost edge-to-edge" look
+                  ),
                   elevation: 8.0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
-                  ), // Maintain rounded corners
+                  ),
                   child: SingleChildScrollView(
-                    // This SingleChildScrollView is for the content *inside* the card
                     padding: const EdgeInsets.symmetric(
                       horizontal: 48.0,
                       vertical: 24.0,
-                    ), // Maintain original content padding
+                    ),
                     child: Form(
                       key: _formKey,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment
-                            .center, // Centers the fixed-width content within the card
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           _buildSectionTitle('Applicant Details'),
                           SizedBox(
@@ -404,19 +409,23 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 ? formFieldWidth
                                 : double.infinity,
                             child: TextFormField(
-                              controller: _entryTimeController,
+                              // This controller now only holds the formatted display string.
+                              controller: TextEditingController(
+                                text: _entryDateTime != null
+                                    ? DateFormat(
+                                        "dd-MM-yyyy, hh:mm:ss a",
+                                      ).format(_entryDateTime!)
+                                    : '',
+                              ),
                               decoration: const InputDecoration(
                                 labelText: 'Entry Date & Time',
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.calendar_today),
                               ),
                               readOnly: true,
-                              onTap: () => _selectDateTime(
-                                context,
-                                _entryTimeController,
-                              ),
+                              onTap: () => _selectDateTime(context, true),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (_entryDateTime == null) {
                                   return 'Please select entry date and time';
                                 }
                                 return null;
@@ -429,18 +438,28 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 ? formFieldWidth
                                 : double.infinity,
                             child: TextFormField(
-                              controller: _exitTimeController,
+                              // This controller now only holds the formatted display string.
+                              controller: TextEditingController(
+                                text: _exitDateTime != null
+                                    ? DateFormat(
+                                        "dd-MM-yyyy, hh:mm:ss a",
+                                      ).format(_exitDateTime!)
+                                    : '',
+                              ),
                               decoration: const InputDecoration(
                                 labelText: 'Exit Date & Time',
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.calendar_today),
                               ),
                               readOnly: true,
-                              onTap: () =>
-                                  _selectDateTime(context, _exitTimeController),
+                              onTap: () => _selectDateTime(context, false),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (_exitDateTime == null) {
                                   return 'Please select exit date and time';
+                                }
+                                if (_entryDateTime != null &&
+                                    _exitDateTime!.isBefore(_entryDateTime!)) {
+                                  return 'Exit time must be after entry time';
                                 }
                                 return null;
                               },
@@ -628,7 +647,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                   ),
                 ),
               ),
-      ), // End of SingleChildScrollView
+      ),
     );
   }
 }
