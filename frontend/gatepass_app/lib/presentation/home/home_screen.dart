@@ -10,8 +10,8 @@ import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_sc
 import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
 import 'package:gatepass_app/services/local_database_service.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
-import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
 import 'package:gatepass_app/presentation/admin/admin_screen.dart';
+import 'package:gatepass_app/presentation/profile/profile_screen.dart'; // Import ProfileScreen
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -244,12 +244,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 tooltip: 'Profile',
               ),
-              if (_offlineScans.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.sync),
-                  onPressed: _syncOfflineScans,
-                  tooltip: 'Sync Offline Data',
-                ),
               if (_offlineScans.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.sync),

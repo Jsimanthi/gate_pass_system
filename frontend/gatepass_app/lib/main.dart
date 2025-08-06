@@ -10,23 +10,37 @@ import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'; // Import this to use kIsWeb
+import 'firebase_options.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'; // Import for web database
+import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // <--- NEW IMPORT for desktop/mobile FFI
+// Import for databaseFactory
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  
+  // Initialize FFI for desktop/mobile, then override for web
+  // This must be called before any database operations
+  sqfliteFfiInit(); // <--- NEW: Initialize FFI for all platforms first
+
+  if (kIsWeb) {
+    // For web, use the sqflite_ffi_web factory
+    databaseFactory = databaseFactoryFfiWeb;
+  } else {
+    // For non-web platforms (desktop, mobile), use the FFI factory
+    databaseFactory = databaseFactoryFfi; // <--- NEW: Assign FFI factory for non-web
+  }
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await dotenv.load(fileName: ".env");
 
   final sharedPreferences = await SharedPreferences.getInstance();
   final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://127.0.0.1:8000';
 
-  // The initialization order is critical to avoid a null apiClient in AuthService
-  // 1. Create a dummy AuthService instance
   final authService = AuthService(sharedPreferences, null);
-
-  // 2. Create the ApiClient instance, providing the authService
   final apiClient = ApiClient(baseUrl, authService);
-
-  // 3. Set the fully initialized apiClient instance in authService
   authService.setApiClient(apiClient);
 
   runApp(MyApp(authService: authService, apiClient: apiClient));
@@ -91,7 +105,6 @@ class MyApp extends StatelessWidget {
             );
           } else {
             if (snapshot.hasData && snapshot.data == true) {
-              // The original HomeScreen is back
               return HomeScreen(apiClient: apiClient, authService: authService);
             } else {
               return LoginScreen(

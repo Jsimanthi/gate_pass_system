@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1022002944684",
+    "project_id": "gatepass-597fd",
+    "storage_bucket": "gatepass-597fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1022002944684:android:574d20988b46f47de81d09",
+        "android_client_info": {
+          "package_name": "com.example.gatepass_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1vcu4YZpHJv6HQk8AWzWG4NnBOT4Dex4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -54,6 +54,8 @@ dependencies:
   sqflite: ^2.3.3+1
   connectivity_plus: ^6.0.3
   equatable: ^2.0.5
+  sqflite_common_ffi_web: ^0.4.3+1
+  sqflite_common: ^2.5.0
 
 dev_dependencies:
   flutter_test:
