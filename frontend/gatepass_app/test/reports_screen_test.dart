@@ -14,7 +14,6 @@ void main() {
     setUp(() {
       mockApiClient = MockApiClient();
 
-      // Mock for summary
       when(mockApiClient.get(any)).thenAnswer((realInvocation) async {
         final endpoint = realInvocation.positionalArguments.first as String;
         if (endpoint.contains('daily-summary')) {

@@ -96,7 +96,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       await launchUrl(url);
     } else {
       debugPrint("Could not launch $url");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open export URL.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open export URL.')));
     }
   }
 
