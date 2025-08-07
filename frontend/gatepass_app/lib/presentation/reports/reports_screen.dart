@@ -39,11 +39,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
     _fetchReportData();
   }
 
+  // Helper function to build a query string from parameters
   String _buildQueryString(Map<String, String> params) {
     if (params.isEmpty) return '';
     return '?${params.entries.map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}').join('&')}';
   }
 
+  // Fetches data for the purpose and gate dropdowns
   Future<void> _fetchDropdownData() async {
     try {
       final purposesData = await widget.apiClient.get('/api/core-data/purposes/');
@@ -57,6 +59,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
+  // Fetches all report data based on current filters
   Future<void> _fetchReportData() async {
     final Map<String, String> queryParams = {};
     if (_startDate != null) queryParams['start_date'] = DateFormat('yyyy-MM-dd').format(_startDate!);
@@ -74,11 +77,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
   }
 
+  // Displays a date picker for selecting a start or end date
   Future<void> _selectDate(BuildContext context, {required bool isStartDate}) async {
-    final DateTime? picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2101));
-    if (picked != null) setState(() => isStartDate ? _startDate = picked : _endDate = picked);
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
+      });
+    }
   }
 
+  // Exports the report in the specified format (csv or pdf)
   void _exportReport(String format) async {
     final Map<String, String> queryParams = {};
     if (_startDate != null) queryParams['start_date'] = DateFormat('yyyy-MM-dd').format(_startDate!);
@@ -89,14 +107,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
     queryParams['format'] = format;
 
     final queryString = _buildQueryString(queryParams);
+    // Reverting to using dotenv, but keeping the null-coalescing for safety.
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
     final url = Uri.parse('$baseUrl/api/reports/daily-summary/export/$queryString');
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      debugPrint("Could not launch $url");
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open export URL.')));
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open export URL.')));
+      }
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('An error occurred during export.')));
     }
   }
 
@@ -124,34 +147,95 @@ class _ReportsScreenState extends State<ReportsScreen> {
       children: [
         Text('Filters', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(child: ElevatedButton.icon(onPressed: () => _selectDate(context, isStartDate: true), icon: const Icon(Icons.calendar_today), label: Text(_startDate == null ? 'Start Date' : DateFormat('yyyy-MM-dd').format(_startDate!)))),
-            const SizedBox(width: 10),
-            Expanded(child: ElevatedButton.icon(onPressed: () => _selectDate(context, isStartDate: false), icon: const Icon(Icons.calendar_today), label: Text(_endDate == null ? 'End Date' : DateFormat('yyyy-MM-dd').format(_endDate!)))),
-          ],
+        // Use a LayoutBuilder to conditionally render a Row or Column
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth > 600) {
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _selectDate(context, isStartDate: true),
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(_startDate == null ? 'Start Date' : DateFormat('yyyy-MM-dd').format(_startDate!)),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _selectDate(context, isStartDate: false),
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(_endDate == null ? 'End Date' : DateFormat('yyyy-MM-dd').format(_endDate!)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildDropdown<String>(_selectedStatus, 'Select Status', _statusOptions.map((e) => {'id': e, 'name': e}).toList(), (val) => setState(() => _selectedStatus = val))),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildDropdown<int>(_selectedPurposeId, 'Select Purpose', _purposes, (val) => setState(() => _selectedPurposeId = val))),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildDropdown<int>(_selectedGateId, 'Select Gate', _gates, (val) => setState(() => _selectedGateId = val))),
+                      const SizedBox(width: 10),
+                      Expanded(child: ElevatedButton(onPressed: _fetchReportData, child: const Text('Apply Filters'))),
+                    ],
+                  ),
+                ],
+              );
+            } else {
+              return Column(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => _selectDate(context, isStartDate: true),
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(_startDate == null ? 'Start Date' : DateFormat('yyyy-MM-dd').format(_startDate!)),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: () => _selectDate(context, isStartDate: false),
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(_endDate == null ? 'End Date' : DateFormat('yyyy-MM-dd').format(_endDate!)),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildDropdown<String>(_selectedStatus, 'Select Status', _statusOptions.map((e) => {'id': e, 'name': e}).toList(), (val) => setState(() => _selectedStatus = val)),
+                  const SizedBox(height: 10),
+                  _buildDropdown<int>(_selectedPurposeId, 'Select Purpose', _purposes, (val) => setState(() => _selectedPurposeId = val)),
+                  const SizedBox(height: 10),
+                  _buildDropdown<int>(_selectedGateId, 'Select Gate', _gates, (val) => setState(() => _selectedGateId = val)),
+                  const SizedBox(height: 20),
+                  ElevatedButton(onPressed: _fetchReportData, child: const Text('Apply Filters')),
+                ],
+              );
+            }
+          },
         ),
-        const SizedBox(height: 10),
-        _buildDropdown<String>(_selectedStatus, 'Select Status', _statusOptions.map((e) => {'id': e, 'name': e}).toList(), (val) => setState(() => _selectedStatus = val)),
-        const SizedBox(height: 10),
-        _buildDropdown<int>(_selectedPurposeId, 'Select Purpose', _purposes, (val) => setState(() => _selectedPurposeId = val)),
-        const SizedBox(height: 10),
-        _buildDropdown<int>(_selectedGateId, 'Select Gate', _gates, (val) => setState(() => _selectedGateId = val)),
         const SizedBox(height: 20),
         Row(
           children: [
             Expanded(child: ElevatedButton(onPressed: _fetchReportData, child: const Text('Apply Filters'))),
             const SizedBox(width: 10),
-            PopupMenuButton<String>(
-              onSelected: _exportReport,
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(value: 'csv', child: Text('Export as CSV')),
-                const PopupMenuItem<String>(value: 'pdf', child: Text('Export as PDF')),
-              ],
-              child: ElevatedButton.icon(
-                  onPressed: null,
+            // The PopupMenuButton is now the main widget, and its child is just a button.
+            Expanded(
+              child: PopupMenuButton<String>(
+                onSelected: _exportReport,
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(value: 'csv', child: Text('Export as CSV')),
+                  const PopupMenuItem<String>(value: 'pdf', child: Text('Export as PDF')),
+                ],
+                child: ElevatedButton.icon(
+                  onPressed: null, // This button itself doesn't need an onPressed handler
                   icon: const Icon(Icons.download),
-                  label: const Text("Export")),
+                  label: const Text("Export"),
+                ),
+              ),
             ),
           ],
         ),
@@ -210,11 +294,30 @@ class _ReportsScreenState extends State<ReportsScreen> {
               itemCount: logs.length,
               itemBuilder: (context, index) {
                 final log = logs[index] as Map<String, dynamic>;
+                // Get the timestamp string. If it's null, use a default value.
+                final timestampString = log['timestamp'] as String? ?? 'N/A';
+                String formattedDate = 'N/A';
+                
+                // Only try to parse if the timestamp is not null
+                if (timestampString != 'N/A') {
+                  try {
+                    // Define the pattern to match the API's date format
+                    final apiDateFormat = DateFormat('dd-MM-yyyy, hh:mm:ss a');
+                    final dateTime = apiDateFormat.parse(timestampString);
+                    // Format the parsed DateTime object for display
+                    formattedDate = DateFormat.yMd().add_jm().format(dateTime);
+                  } catch (e) {
+                    debugPrint('Error parsing date: $e');
+                    // Fallback in case parsing fails
+                    formattedDate = 'Invalid Date';
+                  }
+                }
+                
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4.0),
                   child: ListTile(
                     title: Text('Reason: ${log['reason'] ?? 'N/A'}'),
-                    subtitle: Text('By: ${log['security_personnel_email'] ?? 'N/A'} at ${DateFormat.yMd().add_jm().format(DateTime.parse(log['timestamp']))}'),
+                    subtitle: Text('By: ${log['security_personnel_email'] ?? 'N/A'} at $formattedDate'),
                     trailing: Chip(
                       label: Text(log['status'] ?? 'N/A'),
                       backgroundColor: (log['status'] == 'failure') ? Colors.red.shade100 : Colors.green.shade100,
@@ -255,7 +358,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   gridData: FlGridData(show: false),
                   titlesData: FlTitlesData(
                     leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40)),
-                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    // Show the bottom titles and use the labels from the API.
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                        getTitlesWidget: (value, meta) {
+                          // Ensure we don't try to access an index out of bounds
+                          if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                            return Text(labels[value.toInt()], style: const TextStyle(fontSize: 10));
+                          }
+                          return const Text('');
+                        },
+                      ),
+                    ),
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),

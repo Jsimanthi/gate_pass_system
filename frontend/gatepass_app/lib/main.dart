@@ -10,25 +10,25 @@ import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'; // Import this to use kIsWeb
+import 'package:flutter/foundation.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common/sqflite_dev.dart'; // Add this import for databaseFactory
+
 import 'firebase_options.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'; // Import for web database
-import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // <--- NEW IMPORT for desktop/mobile FFI
-// Import for databaseFactory
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize FFI for desktop/mobile, then override for web
-  // This must be called before any database operations
-  sqfliteFfiInit(); // <--- NEW: Initialize FFI for all platforms first
-
+  // Conditionally initialize the correct database factory based on the platform.
   if (kIsWeb) {
-    // For web, use the sqflite_ffi_web factory
+    // For web, use the sqflite_ffi_web factory.
     databaseFactory = databaseFactoryFfiWeb;
   } else {
-    // For non-web platforms (desktop, mobile), use the FFI factory
-    databaseFactory = databaseFactoryFfi; // <--- NEW: Assign FFI factory for non-web
+    // For non-web platforms (Android, iOS, desktop), initialize FFI
+    // and assign the factory. This ensures the native library is loaded.
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
   }
   
   await Firebase.initializeApp(
