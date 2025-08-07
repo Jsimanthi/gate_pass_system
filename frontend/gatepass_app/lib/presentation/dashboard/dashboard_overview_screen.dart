@@ -1,4 +1,4 @@
-// File: lib/presentation/home/dashboard_overview_screen.dart
+// File: lib/presentation/dashboard/dashboard_overview_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
@@ -38,26 +38,34 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
   }
 
   Future<void> _fetchDashboardData() async {
+    // Always check mounted before the first setState in an async method
+    if (!mounted) return; 
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
       final response = await _apiClient.get('/api/gatepass/dashboard-summary/');
-      setState(() {
-        _pendingPasses = response['pending_count'] ?? 0;
-        _approvedPasses = response['approved_count'] ?? 0;
-        _rejectedPasses = response['rejected_count'] ?? 0;
-      });
+      if (mounted) { // Check mounted before updating state after async call
+        setState(() {
+          _pendingPasses = response['pending_count'] ?? 0;
+          _approvedPasses = response['approved_count'] ?? 0;
+          _rejectedPasses = response['rejected_count'] ?? 0;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Error loading dashboard data: $e';
-        print('Dashboard API Fetch Error: $_errorMessage');
-      });
+      if (mounted) { // Check mounted before updating state in catch block
+        setState(() {
+          _errorMessage = 'Error loading dashboard data: $e';
+          print('Dashboard API Fetch Error: $_errorMessage');
+        });
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) { // Check mounted before updating state in finally block
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

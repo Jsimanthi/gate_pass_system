@@ -476,7 +476,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.category),
                               ),
-                              value: _selectedPurposeId,
+                              initialValue: _selectedPurposeId,
                               hint: const Text('Select Purpose'),
                               items: _purposes.map((purpose) {
                                 return DropdownMenuItem<String>(
@@ -508,7 +508,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.location_on),
                               ),
-                              value: _selectedGateId,
+                              initialValue: _selectedGateId,
                               hint: const Text('Select Gate'),
                               items: _gates.map((gate) {
                                 return DropdownMenuItem<String>(
@@ -558,7 +558,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.directions_car),
                               ),
-                              value: _selectedVehicleId,
+                              initialValue: _selectedVehicleId,
                               hint: const Text('Select Vehicle (Optional)'),
                               items: _vehicles.map((vehicle) {
                                 String displayText =
@@ -591,7 +591,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.drive_eta),
                               ),
-                              value: _selectedDriverId,
+                              initialValue: _selectedDriverId,
                               hint: const Text('Select Driver (Optional)'),
                               items: _drivers.map((driver) {
                                 return DropdownMenuItem<String>(

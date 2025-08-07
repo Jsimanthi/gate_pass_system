@@ -44,9 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadOfflineScans() async {
     final scans = await _localDatabaseService.getScannedQRCodes();
-    setState(() {
-      _offlineScans = scans;
-    });
+    // Check if the widget is still mounted before calling setState
+    if (mounted) { // <--- ADDED THIS CHECK
+      setState(() {
+        _offlineScans = scans;
+      });
+    }
   }
 
   void _onItemTapped(int index) {
@@ -62,10 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
         await _localDatabaseService.deleteScannedQRCode(scan['id']);
       } catch (e) {
         // Handle sync error, maybe show a message to the user
-        print('Error syncing QR code: ${scan['qr_code_data']}. Error: $e');
+        debugPrint('Error syncing QR code: ${scan['qr_code_data']}. Error: $e');
       }
     }
-    _loadOfflineScans();
+    // Ensure mounted check here too if _loadOfflineScans also calls setState
+    if (mounted) { // <--- ADDED THIS CHECK
+      _loadOfflineScans();
+    }
   }
 
   void _logout() async {
@@ -106,7 +112,18 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (snapshot.data == null) {
           // If the role is null, something is wrong with the token.
           // Force logout and navigate to login.
-          _logout();
+          // Ensure mounted check before calling _logout if this FutureBuilder
+          // could be rebuilt while _logout is in progress.
+          // However, _logout itself has the mounted check for navigation.
+          // The issue here is the immediate call to _logout which might
+          // dispose the widget before the FutureBuilder completes its build.
+          // To prevent this, we can show a temporary loading state or
+          // ensure _logout is only called once.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) { // <--- ADDED mounted check before _logout call
+              _logout();
+            }
+          });
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );

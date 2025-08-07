@@ -2,7 +2,7 @@
 
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'; // For debugPrint
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthService {
@@ -104,13 +104,46 @@ class AuthService {
   // --- Get User Role ---
   Future<String?> getUserRole() async {
     final accessToken = await getAccessToken();
-    if (accessToken == null) {
+    if (accessToken == null || JwtDecoder.isExpired(accessToken)) {
+      debugPrint('AuthService.getUserRole(): Access token is null or expired.');
       return null;
     }
     try {
       final Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-      return decodedToken['role'];
+      debugPrint(
+          'AuthService.getUserRole(): Decoded token payload: $decodedToken');
+
+      // Check for 'is_staff' first, as 'admin' user has this
+      if (decodedToken.containsKey('is_staff') &&
+          decodedToken['is_staff'] == true) {
+        debugPrint('AuthService.getUserRole(): User is Admin (from is_staff).');
+        return 'Admin';
+      }
+
+      // Check for 'groups' if 'is_staff' is not true or not present
+      if (decodedToken.containsKey('groups') &&
+          decodedToken['groups'] is List) {
+        List<dynamic> groups = decodedToken['groups'];
+        if (groups.contains('Security')) {
+          debugPrint(
+              'AuthService.getUserRole(): User role is Security (from groups).');
+          return 'Security';
+        }
+        if (groups.contains('Client Care')) {
+          debugPrint(
+              'AuthService.getUserRole(): User role is Client Care (from groups).');
+          return 'Client Care';
+        }
+        // Add more group-based roles here if applicable
+      }
+
+      // If no specific role or staff status is found, default to 'User'
+      debugPrint(
+          'AuthService.getUserRole(): No specific role found, defaulting to User.');
+      return 'User';
     } catch (e) {
+      debugPrint(
+          'AuthService.getUserRole(): Error decoding token or getting role: $e');
       return null;
     }
   }
