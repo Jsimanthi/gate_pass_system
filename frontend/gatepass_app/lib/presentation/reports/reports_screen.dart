@@ -144,7 +144,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final queryString = _buildQueryString(queryParams);
     // Reverting to using dotenv, but keeping the null-coalescing for safety.
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
-    final url = Uri.parse('$baseUrl/api/reports/daily-summary/export/$queryString');
+    // Corrected the URL endpoint from 'daily-summary/export/' to 'daily-summary-export/'
+    final url = Uri.parse('$baseUrl/api/reports/daily-summary-export/$queryString');
 
     try {
       if (await canLaunchUrl(url)) {
@@ -412,37 +413,84 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _chartDataFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No chart data available.'));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No chart data available.'));
+        }
 
         final chartData = snapshot.data!;
         final labels = List<String>.from(chartData['labels'] ?? []);
         final data = List<num>.from(chartData['data'] ?? []);
 
-        if (labels.isEmpty || data.isEmpty) return const Center(child: Text('No chart data available.'));
+        if (labels.isEmpty || data.isEmpty) {
+          return const Center(child: Text('No chart data available.'));
+        }
 
-        List<FlSpot> spots = data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.toDouble())).toList();
+        // Create data for the bar chart
+        List<BarChartGroupData> barGroups = [];
+        for (int i = 0; i < data.length; i++) {
+          barGroups.add(
+            BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: data[i].toDouble(),
+                  color: Theme.of(context).primaryColor,
+                  width: 16,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(4),
+                    topRight: Radius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         return Column(
           children: [
             Text(chartData['title'] ?? 'Chart', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: false),
+              height: 220,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  barGroups: barGroups,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) {
+                      return const FlLine(
+                        color: Colors.grey,
+                        strokeWidth: 0.5,
+                      );
+                    },
+                  ),
                   titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40)),
-                    // Show the bottom titles and use the labels from the API.
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+                    ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 30,
+                        reservedSize: 35,
                         getTitlesWidget: (value, meta) {
-                          // Ensure we don't try to access an index out of bounds
                           if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                            return Text(labels[value.toInt()], style: const TextStyle(fontSize: 10));
+                            // Rotate labels for better fit if they are long
+                            return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              space: 4.0,
+                              child: Transform.rotate(
+                                angle: -0.7, // 45 degrees
+                                child: Text(
+                                  labels[value.toInt()],
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                              ),
+                            );
                           }
                           return const Text('');
                         },
@@ -451,17 +499,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  borderData: FlBorderData(show: true),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: spots,
-                      isCurved: true,
-                      barWidth: 3,
-                      color: Theme.of(context).primaryColor,
-                      dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(show: true, color: Theme.of(context).primaryColor.withAlpha((255 * 0.3).round())),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey, width: 1.5),
+                      left: BorderSide(color: Colors.grey, width: 1.5),
                     ),
-                  ],
+                  ),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      tooltipBgColor: Colors.blueGrey,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        String weekDay = labels[group.x.toInt()];
+                        return BarTooltipItem(
+                          '$weekDay\n',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: (rod.toY - 1).toString(),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
