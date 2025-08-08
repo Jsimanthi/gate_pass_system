@@ -508,7 +508,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
-                      tooltipBgColor: Colors.blueGrey,
+                      getTooltipColor: (group) => Colors.blueGrey,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         String weekDay = labels[group.x.toInt()];
                         return BarTooltipItem(
