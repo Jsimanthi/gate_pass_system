@@ -11,7 +11,7 @@ import 'package:gatepass_app/presentation/security/qr_scanner_screen.dart';
 import 'package:gatepass_app/services/local_database_service.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/presentation/admin/admin_screen.dart';
-import 'package:gatepass_app/presentation/profile/profile_screen.dart'; // Import ProfileScreen
+import 'package:gatepass_app/presentation/profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -44,8 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadOfflineScans() async {
     final scans = await _localDatabaseService.getScannedQRCodes();
-    // Check if the widget is still mounted before calling setState
-    if (mounted) { // <--- ADDED THIS CHECK
+    if (mounted) {
       setState(() {
         _offlineScans = scans;
       });
@@ -64,12 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await _apiClient.verifyQrCode(scan['qr_code_data']);
         await _localDatabaseService.deleteScannedQRCode(scan['id']);
       } catch (e) {
-        // Handle sync error, maybe show a message to the user
         debugPrint('Error syncing QR code: ${scan['qr_code_data']}. Error: $e');
       }
     }
-    // Ensure mounted check here too if _loadOfflineScans also calls setState
-    if (mounted) { // <--- ADDED THIS CHECK
+    if (mounted) {
       _loadOfflineScans();
     }
   }
@@ -87,11 +84,75 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // A Future that resolves with the user's role
   Future<String?> _getUserRoleFuture() async {
     final role = await _authService.getUserRole();
     debugPrint('HomeScreen: User role is $role');
     return role;
+  }
+
+  // Helper method to build navigation destinations to avoid duplication
+  List<Widget> _getScreenWidgets(String userRole) {
+    List<Widget> widgetOptions = [
+      DashboardOverviewScreen(apiClient: _apiClient, authService: _authService),
+    ];
+    if (userRole == 'Admin') {
+      widgetOptions.addAll([
+        MyPassesScreen(apiClient: _apiClient, authService: _authService),
+        GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+        QrScannerScreen(apiClient: _apiClient),
+        ReportsScreen(apiClient: _apiClient),
+        AdminScreen(apiClient: _apiClient, authService: _authService),
+      ]);
+    } else if (userRole == 'Security') {
+      widgetOptions.addAll([
+        QrScannerScreen(apiClient: _apiClient),
+        ReportsScreen(apiClient: _apiClient),
+      ]);
+    } else if (userRole == 'Client Care') {
+      widgetOptions.addAll([
+        AdminScreen(apiClient: _apiClient, authService: _authService),
+        ReportsScreen(apiClient: _apiClient),
+      ]);
+    } else if (userRole == 'User') {
+      widgetOptions.addAll([
+        MyPassesScreen(apiClient: _apiClient, authService: _authService),
+        GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+        ReportsScreen(apiClient: _apiClient),
+      ]);
+    }
+    return widgetOptions;
+  }
+
+  List<NavigationDestination> _getNavigationDestinations(String userRole) {
+    List<NavigationDestination> navBarItems = [
+      const NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+    ];
+    if (userRole == 'Admin') {
+      navBarItems.addAll([
+        const NavigationDestination(icon: Icon(Icons.description_outlined), selectedIcon: Icon(Icons.description), label: 'My Passes'),
+        const NavigationDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: 'Request Pass'),
+        const NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
+        const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
+        const NavigationDestination(icon: Icon(Icons.sensor_door_outlined), selectedIcon: Icon(Icons.sensor_door), label: 'Manage Passes'),
+      ]);
+    } else if (userRole == 'Security') {
+      navBarItems.addAll([
+        const NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
+        const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
+      ]);
+    } else if (userRole == 'Client Care') {
+      navBarItems.addAll([
+        const NavigationDestination(icon: Icon(Icons.sensor_door_outlined), selectedIcon: Icon(Icons.sensor_door), label: 'Manage Passes'),
+        const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
+      ]);
+    } else if (userRole == 'User') {
+      navBarItems.addAll([
+        const NavigationDestination(icon: Icon(Icons.description_outlined), selectedIcon: Icon(Icons.description), label: 'My Passes'),
+        const NavigationDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: 'Request Pass'),
+        const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
+      ]);
+    }
+    return navBarItems;
   }
 
   @override
@@ -100,142 +161,18 @@ class _HomeScreenState extends State<HomeScreen> {
       future: _getUserRoleFuture(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Show a loading indicator while we fetch the role
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        } else if (snapshot.hasError) {
-          // Show an error screen if something went wrong
-          return Scaffold(
-            body: Center(child: Text('Error: ${snapshot.error}')),
-          );
-        } else if (snapshot.data == null) {
-          // If the role is null, something is wrong with the token.
-          // Force logout and navigate to login.
-          // Ensure mounted check before calling _logout if this FutureBuilder
-          // could be rebuilt while _logout is in progress.
-          // However, _logout itself has the mounted check for navigation.
-          // The issue here is the immediate call to _logout which might
-          // dispose the widget before the FutureBuilder completes its build.
-          // To prevent this, we can show a temporary loading state or
-          // ensure _logout is only called once.
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) { // <--- ADDED mounted check before _logout call
-              _logout();
-            }
+            if (mounted) _logout();
           });
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
 
-        // We have a valid user role, build the screen
         final userRole = snapshot.data!;
-        List<Widget> widgetOptions = [];
-        List<BottomNavigationBarItem> navBarItems = [];
-
-        // Common item for all roles
-        widgetOptions.add(
-          DashboardOverviewScreen(
-            apiClient: _apiClient,
-            authService: _authService,
-          ),
-        );
-        navBarItems.add(
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-        );
-
-        // Role-based navigation items
-        if (userRole == 'Admin') {
-          widgetOptions.addAll([
-            MyPassesScreen(apiClient: _apiClient, authService: _authService),
-            GatePassRequestScreen(
-              apiClient: _apiClient,
-              authService: _authService,
-            ),
-            QrScannerScreen(apiClient: _apiClient),
-            ReportsScreen(apiClient: _apiClient),
-            AdminScreen(apiClient: _apiClient, authService: _authService),
-          ]);
-          navBarItems.addAll([
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.description),
-              label: 'My Passes',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.add_box),
-              label: 'Request Pass',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.qr_code_scanner),
-              label: 'Scan QR',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Reports',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.sensor_door),
-              label: 'Manage Passes',
-            ),
-          ]);
-        } else if (userRole == 'Security') {
-          widgetOptions.addAll([
-            QrScannerScreen(apiClient: _apiClient),
-            ReportsScreen(apiClient: _apiClient),
-          ]);
-          navBarItems.addAll([
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.qr_code_scanner),
-              label: 'Scan QR',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Reports',
-            ),
-          ]);
-        } else if (userRole == 'Client Care') {
-          widgetOptions.addAll([
-            AdminScreen(apiClient: _apiClient, authService: _authService),
-            ReportsScreen(apiClient: _apiClient),
-          ]);
-          navBarItems.addAll([
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.sensor_door),
-              label: 'Manage Passes',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Reports',
-            ),
-          ]);
-        } else if (userRole == 'User') {
-          widgetOptions.addAll([
-            MyPassesScreen(apiClient: _apiClient, authService: _authService),
-            GatePassRequestScreen(
-              apiClient: _apiClient,
-              authService: _authService,
-            ),
-            ReportsScreen(apiClient: _apiClient),
-          ]);
-          navBarItems.addAll([
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.description),
-              label: 'My Passes',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.add_box),
-              label: 'Request Pass',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Reports',
-            ),
-          ]);
-        }
+        final screens = _getScreenWidgets(userRole);
+        final destinations = _getNavigationDestinations(userRole);
 
         return Scaffold(
           appBar: AppBar(
@@ -274,14 +211,49 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          body: widgetOptions.elementAt(_selectedIndex),
-          bottomNavigationBar: BottomNavigationBar(
-            items: navBarItems,
-            currentIndex: _selectedIndex,
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Colors.grey,
-            onTap: _onItemTapped,
-            type: BottomNavigationBarType.fixed,
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 640) {
+                // Use BottomNavigationBar for small screens
+                return Scaffold(
+                  body: IndexedStack(
+                    index: _selectedIndex,
+                    children: screens,
+                  ),
+                  bottomNavigationBar: NavigationBar(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: _onItemTapped,
+                    destinations: destinations,
+                    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  ),
+                );
+              } else {
+                // Use NavigationRail for wider screens
+                return Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: _selectedIndex,
+                      onDestinationSelected: _onItemTapped,
+                      labelType: NavigationRailLabelType.all,
+                      destinations: destinations
+                          .map((d) => NavigationRailDestination(
+                                icon: d.icon,
+                                selectedIcon: d.selectedIcon,
+                                label: Text(d.label),
+                              ))
+                          .toList(),
+                    ),
+                    const VerticalDivider(thickness: 1, width: 1),
+                    Expanded(
+                      child: IndexedStack(
+                        index: _selectedIndex,
+                        children: screens,
+                      ),
+                    ),
+                  ],
+                );
+              }
+            },
           ),
         );
       },

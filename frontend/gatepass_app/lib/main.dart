@@ -16,6 +16,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common/sqflite_dev.dart'; // Add this import for databaseFactory
 
 import 'firebase_options.dart';
+import 'package:gatepass_app/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,10 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Notification Service
+  await NotificationService().initialize();
+
   await dotenv.load(fileName: ".env");
 
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -59,13 +64,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueGrey,
+          seedColor: const Color(0xFF00695C), // A deep teal
           brightness: Brightness.light,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blueGrey,
-          foregroundColor: Colors.white,
           centerTitle: true,
+          // The background and foreground colors will be derived from the colorScheme
         ),
         cardTheme: CardThemeData(
           elevation: 2,
@@ -79,14 +83,13 @@ class MyApp extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            backgroundColor: Colors.blueGrey,
-            foregroundColor: Colors.white,
+            // Let the button use the colorScheme's primary and onPrimary colors
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           filled: true,
-          fillColor: Colors.grey[100],
+          // fillColor will be derived from the colorScheme
         ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
