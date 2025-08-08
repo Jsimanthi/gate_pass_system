@@ -201,34 +201,57 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            // This section is refactored to always show dropdowns,
+            // but they will be disabled if loading or if there's an error.
+            Wrap(
+              spacing: 16.0,
+              runSpacing: 16.0,
+              children: [
+                // Status Dropdown - always enabled as it's a local list
+                _buildDropdown<String>(
+                  value: _selectedStatus,
+                  hint: 'Select Status',
+                  items: _statusOptions.map((e) => {'id': e, 'name': e}).toList(),
+                  onChanged: (val) => setState(() => _selectedStatus = val),
+                  // It's never loading, so enabled
+                  isEnabled: true,
+                ),
+                // Purpose Dropdown
+                _buildDropdown<int>(
+                  value: _selectedPurposeId,
+                  hint: 'Select Purpose',
+                  items: _purposes,
+                  onChanged: (val) => setState(() => _selectedPurposeId = val),
+                  // Disable if loading or if there's an error
+                  isEnabled: !_isLoadingDropdowns && _dropdownError == null,
+                ),
+                // Gate Dropdown
+                _buildDropdown<int>(
+                  value: _selectedGateId,
+                  hint: 'Select Gate',
+                  items: _gates,
+                  onChanged: (val) => setState(() => _selectedGateId = val),
+                  // Disable if loading or if there's an error
+                  isEnabled: !_isLoadingDropdowns && _dropdownError == null,
+                ),
+              ],
+            ),
+            // Display loading indicator or error message below the dropdowns
             if (_isLoadingDropdowns)
-              const Center(child: CircularProgressIndicator())
+              const Padding(
+                padding: EdgeInsets.only(top: 16.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
             else if (_dropdownError != null)
-              Center(child: Text(_dropdownError!, style: const TextStyle(color: Colors.red)))
-            else
-              Wrap(
-                spacing: 16.0,
-                runSpacing: 16.0,
-                children: [
-                  _buildDropdown<String>(
-                    _selectedStatus,
-                    'Select Status',
-                    _statusOptions.map((e) => {'id': e, 'name': e}).toList(),
-                    (val) => setState(() => _selectedStatus = val),
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Center(
+                  child: Text(
+                    _dropdownError!,
+                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
                   ),
-                  _buildDropdown<int>(
-                    _selectedPurposeId,
-                    'Select Purpose',
-                    _purposes,
-                    (val) => setState(() => _selectedPurposeId = val),
-                  ),
-                  _buildDropdown<int>(
-                    _selectedGateId,
-                    'Select Gate',
-                    _gates,
-                    (val) => setState(() => _selectedGateId = val),
-                  ),
-                ],
+                ),
               ),
             const SizedBox(height: 24),
             Row(
@@ -272,13 +295,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildDropdown<T>(T? value, String hint, List<Map<String, dynamic>> items, ValueChanged<T?> onChanged) {
+  // The `isEnabled` parameter is added to control the active state of the dropdown.
+  Widget _buildDropdown<T>({
+    required T? value,
+    required String hint,
+    required List<Map<String, dynamic>> items,
+    required ValueChanged<T?> onChanged,
+    required bool isEnabled,
+  }) {
+    // If the dropdown is disabled, the `onChanged` callback is set to null.
+    final ValueChanged<T?>? effectiveOnChanged = isEnabled ? onChanged : null;
+
     return SizedBox(
       width: 200, // Constrain the width of the dropdown
       child: DropdownButtonFormField<T>(
         value: value,
         hint: Text(hint),
-        onChanged: onChanged,
+        onChanged: effectiveOnChanged,
         items: items.map<DropdownMenuItem<T>>((item) {
           return DropdownMenuItem<T>(
             value: item['id'] as T,
