@@ -25,8 +25,8 @@ class GateOperationsTests(APITestCase):
             registration_date=date.today()
         )
         self.driver = Driver.objects.create(name='Test Driver')
-        self.gate_main = Gate.objects.create(name='Main Gate')
-        self.gate_service = Gate.objects.create(name='Service Gate')
+        self.gate_main, _ = Gate.objects.get_or_create(name='Main Gate')
+        self.gate_service, _ = Gate.objects.get_or_create(name='Service Gate')
 
     def test_verify_qr_code_valid(self):
         gate_pass = GatePass.objects.create(

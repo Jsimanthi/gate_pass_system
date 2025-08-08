@@ -15,12 +15,12 @@ class ReportViewSetTests(APITestCase):
     def setUp(self):
         self.admin_user = CustomUser.objects.create_user(username='admin', password='password123', is_staff=True, is_superuser=True)
         self.client.force_authenticate(user=self.admin_user)
-        self.purpose_meeting = Purpose.objects.create(name='Meeting')
-        self.purpose_delivery = Purpose.objects.create(name='Delivery')
-        self.gate_main = Gate.objects.create(name='Main Gate')
-        self.gate_service = Gate.objects.create(name='Service Gate')
-        self.vehicle_type = VehicleType.objects.create(name='Truck')
-        self.driver = Driver.objects.create(name='Test Driver')
+        self.purpose_meeting, _ = Purpose.objects.get_or_create(name='Meeting')
+        self.purpose_delivery, _ = Purpose.objects.get_or_create(name='Delivery')
+        self.gate_main, _ = Gate.objects.get_or_create(name='Main Gate')
+        self.gate_service, _ = Gate.objects.get_or_create(name='Service Gate')
+        self.vehicle_type, _ = VehicleType.objects.get_or_create(name='Truck')
+        self.driver, _ = Driver.objects.get_or_create(name='Test Driver')
         self.vehicle = Vehicle.objects.create(
             vehicle_number='TEST 123', type=self.vehicle_type, make='Test Make', model='Test Model',
             capacity='1 ton', status='Active', registration_date=timezone.now().date()
