@@ -57,8 +57,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
       final purposesData = await widget.apiClient.get('/api/core-data/purposes/');
       final gatesData = await widget.apiClient.get('/api/core-data/gates/');
       setState(() {
-        if (purposesData is List) _purposes = List<Map<String, dynamic>>.from(purposesData);
-        if (gatesData is List) _gates = List<Map<String, dynamic>>.from(gatesData);
+        // Correctly parse the paginated response from DRF
+        if (purposesData is Map<String, dynamic> && purposesData.containsKey('results')) {
+          _purposes = List<Map<String, dynamic>>.from(purposesData['results']);
+        }
+        if (gatesData is Map<String, dynamic> && gatesData.containsKey('results')) {
+          _gates = List<Map<String, dynamic>>.from(gatesData['results']);
+        }
+
+        // After attempting to parse, check if the lists are empty.
         if (_purposes.isEmpty || _gates.isEmpty) {
           _dropdownError = 'No data available for dropdowns. Please ensure migrations are run and you are logged in.';
         }
