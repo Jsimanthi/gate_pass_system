@@ -38,12 +38,10 @@ void main() {
 
       final QrScannerScreenState state = tester.state(find.byType(QrScannerScreen));
       state.handleScan('test_qr_code');
-      await tester.pump();
+      await tester.pump(const Duration(seconds: 5));
 
-      expect(find.text('Scan Result: test_qr_code'), findsOneWidget);
-      await tester.pump();
-
-      expect(find.text('Verification Result: {message: Gate Pass Validated Successfully!, alcohol_test_required: false}'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Gate Pass Validated Successfully!'), findsOneWidget);
     });
 
     testWidgets('shows alcohol test dialog when required', (WidgetTester tester) async {
@@ -57,7 +55,7 @@ void main() {
 
       final QrScannerScreenState state = tester.state(find.byType(QrScannerScreen));
       state.handleScan('test_qr_code');
-      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('Alcohol Test Required'), findsOneWidget);

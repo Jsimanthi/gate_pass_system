@@ -64,7 +64,7 @@ class _MyPassDetailsScreenState extends State<MyPassDetailsScreen> {
           mimeType: 'image/png',
           name: 'gatepass.png',
         );
-        await SharePlus.shareXFiles([xFile], text: passDetails);
+        await Share.shareXFiles([xFile], text: passDetails);
       }
     } catch (e) {
       if (!mounted) return;
