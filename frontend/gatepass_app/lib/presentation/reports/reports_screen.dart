@@ -247,7 +247,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildDropdown<T>(T? value, String hint, List<Map<String, dynamic>> items, ValueChanged<T?> onChanged) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       hint: Text(hint),
       onChanged: onChanged,
       items: items.map<DropdownMenuItem<T>>((item) {
