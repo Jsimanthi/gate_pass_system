@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404
 from apps.gatepass.models import GatePass
 from .models import GateLog
 from .serializers import GateLogSerializer, QRCodeScanSerializer
+from .filters import GateLogFilter
+from django_filters.rest_framework import DjangoFilterBackend
 import json
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -31,8 +33,8 @@ class ScanQRCodeView(APIView):
         try:
             gate_pass = GatePass.objects.get(id=gatepass_id)
             if gate_pass.status == GatePass.APPROVED:
-                self._log_success(request.user, gate_pass, qr_code_data)
-                return Response(self._get_success_response(gate_pass), status=status.HTTP_200_OK)
+                action_logged = self._log_success(request.user, gate_pass, qr_code_data)
+                return Response(self._get_success_response(gate_pass, action_logged), status=status.HTTP_200_OK)
             else:
                 reason = f"Gate Pass has status: {gate_pass.get_status_display()}"
                 self._log_failure(request.user, reason, qr_code_data, gate_pass)
@@ -55,17 +57,30 @@ class ScanQRCodeView(APIView):
         )
 
     def _log_success(self, user, gate_pass, scanned_data):
+        # Determine if this is an entry or exit scan
+        is_exit_scan = GateLog.objects.filter(
+            gate_pass=gate_pass,
+            action='entry',
+            status='success'
+        ).exists()
+
+        action = 'exit' if is_exit_scan else 'entry'
+
         GateLog.objects.create(
             security_personnel=user,
             gate_pass=gate_pass,
-            action='entry',
+            action=action,
             status='success',
             scanned_data=scanned_data
         )
 
-    def _get_success_response(self, gate_pass):
+        # Return the action that was logged for the response message
+        return action
+
+    def _get_success_response(self, gate_pass, action_logged):
+        message = f"Gate Pass Validated for {action_logged.capitalize()} Successfully!"
         return {
-            "message": "Gate Pass Validated Successfully!",
+            "message": message,
             "gate_pass_details": {
                 "id": gate_pass.id,
                 "person_name": gate_pass.driver.name,
@@ -80,6 +95,8 @@ class GateLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GateLog.objects.all()
     serializer_class = GateLogSerializer
     permission_classes = [permissions.IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = GateLogFilter
 
 
 class StandardResultsSetPagination(PageNumberPagination):
