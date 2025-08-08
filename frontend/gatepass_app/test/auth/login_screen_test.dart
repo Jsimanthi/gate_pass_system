@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:mockito/annotations.dart'; // <-- Add this import
 import 'package:mockito/mockito.dart';
 import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/services/auth_service.dart';
@@ -9,6 +10,8 @@ import 'package:gatepass_app/presentation/home/home_screen.dart';
 
 import 'login_screen_test.mocks.dart';
 
+// Add this annotation here
+@GenerateMocks([AuthService, ApiClient])
 void main() {
   // Initialize FFI for sqflite
   sqfliteFfiInit();
