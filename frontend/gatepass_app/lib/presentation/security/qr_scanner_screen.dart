@@ -20,7 +20,6 @@ class QrScannerScreen extends StatefulWidget {
 class QrScannerScreenState extends State<QrScannerScreen> {
   MobileScannerController controller = MobileScannerController();
   bool _isProcessing = false;
-  String? _scanResult;
   File? _image;
   final ImagePicker _picker = ImagePicker();
   final LocalDatabaseService _localDatabaseService = LocalDatabaseService.instance;
@@ -30,11 +29,10 @@ class QrScannerScreenState extends State<QrScannerScreen> {
 
     setState(() {
       _isProcessing = true;
-      _scanResult = value;
     });
 
     var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.contains(ConnectivityResult.none)) {
       await _localDatabaseService.insertScannedQRCode(value);
       setState(() {
         _isProcessing = false;
@@ -145,6 +143,7 @@ class QrScannerScreenState extends State<QrScannerScreen> {
                   setState(() {
                     _image = File(image.path);
                   });
+                  if (!mounted) return;
                   Navigator.of(context).pop();
                   _showAlcoholTestDialog(gatepassId);
                 }
@@ -154,6 +153,7 @@ class QrScannerScreenState extends State<QrScannerScreen> {
               child: const Text('Pass'),
               onPressed: () {
                 _submitAlcoholTestResult(gatepassId, 'pass');
+                if (!mounted) return;
                 Navigator.of(context).pop();
                 controller.start();
               },
@@ -162,6 +162,7 @@ class QrScannerScreenState extends State<QrScannerScreen> {
               child: const Text('Fail'),
               onPressed: () {
                 _submitAlcoholTestResult(gatepassId, 'fail');
+                if (!mounted) return;
                 Navigator.of(context).pop();
                 controller.start();
               },
@@ -174,6 +175,7 @@ class QrScannerScreenState extends State<QrScannerScreen> {
 
   void _submitAlcoholTestResult(int gatepassId, String result) async {
     if (_image == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please take a photo before submitting the result.'),
@@ -188,6 +190,7 @@ class QrScannerScreenState extends State<QrScannerScreen> {
         'result': result,
         'photo': _image,
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Alcohol test result submitted successfully.'),
@@ -195,6 +198,7 @@ class QrScannerScreenState extends State<QrScannerScreen> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error submitting alcohol test result: $e'),

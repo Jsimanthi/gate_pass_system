@@ -68,6 +68,7 @@ class _AdminScreenState extends State<AdminScreen> {
       await _apiClient.post('/api/gatepass/gatepasses/$passId/approve/', {});
       _fetchAllGatePasses();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to approve pass: $e')));
@@ -79,6 +80,7 @@ class _AdminScreenState extends State<AdminScreen> {
       await _apiClient.post('/api/gatepass/gatepasses/$passId/reject/', {});
       _fetchAllGatePasses();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to reject pass: $e')));

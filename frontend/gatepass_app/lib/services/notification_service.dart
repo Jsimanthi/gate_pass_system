@@ -49,8 +49,6 @@ class NotificationService {
         );
       }
     });
-
-    // TODO: Handle notification taps and app opening from terminated state
   }
 
   Future<String?> getFcmToken() async {

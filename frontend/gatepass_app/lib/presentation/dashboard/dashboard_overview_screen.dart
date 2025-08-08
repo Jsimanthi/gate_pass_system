@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
-import 'package:gatepass_app/presentation/gate_pass_request/gate_pass_request_screen.dart';
 
 class DashboardOverviewScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -21,7 +20,6 @@ class DashboardOverviewScreen extends StatefulWidget {
 
 class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
   late final ApiClient _apiClient;
-  late final AuthService _authService;
 
   int _pendingPasses = 0;
   int _approvedPasses = 0;
@@ -33,7 +31,6 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
   void initState() {
     super.initState();
     _apiClient = widget.apiClient;
-    _authService = widget.authService;
     _fetchDashboardData();
   }
 
@@ -57,7 +54,6 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
       if (mounted) { // Check mounted before updating state in catch block
         setState(() {
           _errorMessage = 'Error loading dashboard data: $e';
-          print('Dashboard API Fetch Error: $_errorMessage');
         });
       }
     } finally {
@@ -67,18 +63,6 @@ class _DashboardOverviewScreenState extends State<DashboardOverviewScreen> {
         });
       }
     }
-  }
-
-  void _navigateToGatePassRequest() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GatePassRequestScreen(
-          apiClient: _apiClient,
-          authService: _authService,
-        ),
-      ),
-    );
   }
 
   @override

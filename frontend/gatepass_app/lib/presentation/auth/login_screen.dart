@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Sign in to continue to your Gate Pass account',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withAlpha((255 * 0.7).round()),
                       ),
                     ),
                     const SizedBox(height: 32), // More space before text fields

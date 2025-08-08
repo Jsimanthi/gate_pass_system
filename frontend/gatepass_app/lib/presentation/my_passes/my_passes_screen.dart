@@ -23,7 +23,6 @@ class MyPassesScreen extends StatefulWidget {
 
 class _MyPassesScreenState extends State<MyPassesScreen> {
   late final ApiClient _apiClient;
-  late final AuthService _authService;
   bool _isLoading = true;
   String? _errorMessage;
   List<Map<String, dynamic>> _myGatePasses = [];
@@ -36,7 +35,6 @@ class _MyPassesScreenState extends State<MyPassesScreen> {
   void initState() {
     super.initState();
     _apiClient = widget.apiClient;
-    _authService = widget.authService;
     _fetchMyGatePasses(); // Initiate API call when screen initializes
   }
 
