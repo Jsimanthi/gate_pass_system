@@ -31,6 +31,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final List<String> _statusOptions = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'];
   List<Map<String, dynamic>> _purposes = [];
   List<Map<String, dynamic>> _gates = [];
+  bool _isLoadingDropdowns = true;
+  String? _dropdownError;
 
   @override
   void initState() {
@@ -47,6 +49,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   // Fetches data for the purpose and gate dropdowns
   Future<void> _fetchDropdownData() async {
+    setState(() {
+      _isLoadingDropdowns = true;
+      _dropdownError = null;
+    });
     try {
       final purposesData = await widget.apiClient.get('/api/core-data/purposes/');
       final gatesData = await widget.apiClient.get('/api/core-data/gates/');
@@ -55,7 +61,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
         if (gatesData is List) _gates = List<Map<String, dynamic>>.from(gatesData);
       });
     } catch (e) {
+      setState(() {
+        _dropdownError = "Failed to load filter options.";
+      });
       debugPrint("Error fetching dropdown data: $e");
+    } finally {
+      setState(() {
+        _isLoadingDropdowns = false;
+      });
     }
   }
 
@@ -144,119 +157,125 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildFilters() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Filters', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
-        // Use a LayoutBuilder to conditionally render a Row or Column
-        LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth > 600) {
-              return Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _selectDate(context, isStartDate: true),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(_startDate == null ? 'Start Date' : DateFormat('yyyy-MM-dd').format(_startDate!)),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _selectDate(context, isStartDate: false),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(_endDate == null ? 'End Date' : DateFormat('yyyy-MM-dd').format(_endDate!)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDropdown<String>(_selectedStatus, 'Select Status', _statusOptions.map((e) => {'id': e, 'name': e}).toList(), (val) => setState(() => _selectedStatus = val))),
-                      const SizedBox(width: 10),
-                      Expanded(child: _buildDropdown<int>(_selectedPurposeId, 'Select Purpose', _purposes, (val) => setState(() => _selectedPurposeId = val))),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDropdown<int>(_selectedGateId, 'Select Gate', _gates, (val) => setState(() => _selectedGateId = val))),
-                      const SizedBox(width: 10),
-                      Expanded(child: ElevatedButton(onPressed: _fetchReportData, child: const Text('Apply Filters'))),
-                    ],
-                  ),
-                ],
-              );
-            } else {
-              return Column(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _selectDate(context, isStartDate: true),
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(_startDate == null ? 'Start Date' : DateFormat('yyyy-MM-dd').format(_startDate!)),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: () => _selectDate(context, isStartDate: false),
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(_endDate == null ? 'End Date' : DateFormat('yyyy-MM-dd').format(_endDate!)),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildDropdown<String>(_selectedStatus, 'Select Status', _statusOptions.map((e) => {'id': e, 'name': e}).toList(), (val) => setState(() => _selectedStatus = val)),
-                  const SizedBox(height: 10),
-                  _buildDropdown<int>(_selectedPurposeId, 'Select Purpose', _purposes, (val) => setState(() => _selectedPurposeId = val)),
-                  const SizedBox(height: 10),
-                  _buildDropdown<int>(_selectedGateId, 'Select Gate', _gates, (val) => setState(() => _selectedGateId = val)),
-                  const SizedBox(height: 20),
-                  ElevatedButton(onPressed: _fetchReportData, child: const Text('Apply Filters')),
-                ],
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 20),
-        Row(
+    bool canApplyFilters = _startDate != null && _endDate != null;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: ElevatedButton(onPressed: _fetchReportData, child: const Text('Apply Filters'))),
-            const SizedBox(width: 10),
-            // The PopupMenuButton is now the main widget, and its child is just a button.
-            Expanded(
-              child: PopupMenuButton<String>(
-                onSelected: _exportReport,
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(value: 'csv', child: Text('Export as CSV')),
-                  const PopupMenuItem<String>(value: 'pdf', child: Text('Export as PDF')),
-                ],
-                child: ElevatedButton.icon(
-                  onPressed: null, // This button itself doesn't need an onPressed handler
-                  icon: const Icon(Icons.download),
-                  label: const Text("Export"),
+            Text('Filters', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 16.0,
+              runSpacing: 16.0,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _selectDate(context, isStartDate: true),
+                  icon: const Icon(Icons.calendar_today),
+                  label: Text(_startDate == null ? 'Start Date' : DateFormat('yyyy-MM-dd').format(_startDate!)),
                 ),
+                ElevatedButton.icon(
+                  onPressed: () => _selectDate(context, isStartDate: false),
+                  icon: const Icon(Icons.calendar_today),
+                  label: Text(_endDate == null ? 'End Date' : DateFormat('yyyy-MM-dd').format(_endDate!)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (_isLoadingDropdowns)
+              const Center(child: CircularProgressIndicator())
+            else if (_dropdownError != null)
+              Center(child: Text(_dropdownError!, style: const TextStyle(color: Colors.red)))
+            else
+              Wrap(
+                spacing: 16.0,
+                runSpacing: 16.0,
+                children: [
+                  _buildDropdown<String>(
+                    _selectedStatus,
+                    'Select Status',
+                    _statusOptions.map((e) => {'id': e, 'name': e}).toList(),
+                    (val) => setState(() => _selectedStatus = val),
+                  ),
+                  _buildDropdown<int>(
+                    _selectedPurposeId,
+                    'Select Purpose',
+                    _purposes,
+                    (val) => setState(() => _selectedPurposeId = val),
+                  ),
+                  _buildDropdown<int>(
+                    _selectedGateId,
+                    'Select Gate',
+                    _gates,
+                    (val) => setState(() => _selectedGateId = val),
+                  ),
+                ],
               ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: canApplyFilters ? _fetchReportData : null,
+                    icon: const Icon(Icons.filter_list),
+                    label: const Text('Apply Filters'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: PopupMenuButton<String>(
+                    onSelected: canApplyFilters ? _exportReport : null,
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(value: 'csv', child: Text('Export as CSV')),
+                      const PopupMenuItem<String>(value: 'pdf', child: Text('Export as PDF')),
+                    ],
+                    child: ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.download),
+                      label: const Text("Export"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildDropdown<T>(T? value, String hint, List<Map<String, dynamic>> items, ValueChanged<T?> onChanged) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      hint: Text(hint),
-      onChanged: onChanged,
-      items: items.map<DropdownMenuItem<T>>((item) {
-        return DropdownMenuItem<T>(
-          value: item['id'] as T,
-          child: Text(item['name'].toString()),
-        );
-      }).toList(),
-      decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12.0)),
+    return SizedBox(
+      width: 200, // Constrain the width of the dropdown
+      child: DropdownButtonFormField<T>(
+        value: value,
+        hint: Text(hint),
+        onChanged: onChanged,
+        items: items.map<DropdownMenuItem<T>>((item) {
+          return DropdownMenuItem<T>(
+            value: item['id'] as T,
+            child: Text(item['name'].toString()),
+          );
+        }).toList(),
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          isDense: true,
+        ),
+      ),
     );
   }
 
