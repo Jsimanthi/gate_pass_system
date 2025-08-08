@@ -143,8 +143,8 @@ class QrScannerScreenState extends State<QrScannerScreen> {
                   setState(() {
                     _image = File(image.path);
                   });
-                  if (!mounted) return;
                   Navigator.of(context).pop();
+                  if (!mounted) return;
                   _showAlcoholTestDialog(gatepassId);
                 }
               },

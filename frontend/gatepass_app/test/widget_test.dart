@@ -16,11 +16,23 @@ import 'package:mockito/annotations.dart';
 
 import 'widget_test.mocks.dart';
 
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // Create mock classes for AuthService and ApiClient
 @GenerateMocks([ApiClient, AuthService, SharedPreferences])
 void main() {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   // Group tests related to your main application widget
   group('MyApp widget tests', () {
+    // Helper to set screen size for responsive tests
+    void setScreenSize(WidgetTester tester, Size size) {
+      final view = tester.view;
+      view.physicalSize = size;
+      view.devicePixelRatio = 1.0;
+      // Add a tear down to clear the values after the test
+      addTearDown(view.reset);
+    }
+
     // Setup mocks before each test
     late MockAuthService mockAuthService;
     late MockApiClient mockApiClient;
@@ -35,6 +47,7 @@ void main() {
       when(mockAuthService.isLoggedIn()).thenAnswer((_) async => true);
       // Stub other methods if they are called directly in MyApp or initial screens
       when(mockAuthService.getAccessToken()).thenAnswer((_) async => 'mock_token');
+      when(mockAuthService.getUserRole()).thenAnswer((_) async => 'Admin');
       when(mockApiClient.get(any)).thenAnswer((_) async => {
             'pending_count': 0,
             'approved_count': 0,
@@ -43,6 +56,7 @@ void main() {
     });
 
     testWidgets('MyApp renders correctly', (WidgetTester tester) async {
+      setScreenSize(tester, const Size(1200, 800));
       // Build our app and trigger a frame.
       await tester.pumpWidget(
         MyApp(
@@ -60,7 +74,7 @@ void main() {
       // After settling, it should navigate to HomeScreen because isLoggedIn returns true.
       // Verify that HomeScreen (or a widget specific to HomeScreen like an AppBar title) is present.
       expect(find.text('Gate Pass System'), findsOneWidget); // Assuming your AppBar title in HomeScreen is 'Gate Pass System'
-      expect(find.byType(BottomNavigationBar), findsOneWidget); // Expect the bottom navigation bar
+      expect(find.byType(NavigationRail), findsOneWidget); // Expect the navigation rail
     });
 
     // You can add more specific tests here, for example:
