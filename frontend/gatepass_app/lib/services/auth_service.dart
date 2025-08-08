@@ -1,6 +1,7 @@
 // File: lib/services/auth_service.dart
 
 import 'package:gatepass_app/core/api_client.dart';
+import 'package:gatepass_app/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; // For debugPrint
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -8,6 +9,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class AuthService {
   final SharedPreferences _prefs;
   ApiClient? _apiClient;
+  final NotificationService _notificationService = NotificationService();
 
   static const String _accessTokenKey = 'accessToken';
   static const String _refreshTokenKey = 'refreshToken';
@@ -35,6 +37,10 @@ class AuthService {
       if (response.containsKey('access') && response.containsKey('refresh')) {
         await _prefs.setString(_accessTokenKey, response['access']);
         await _prefs.setString(_refreshTokenKey, response['refresh']);
+
+        // After successful login, register the device for push notifications
+        await _registerDevice();
+
         return {'success': true, 'message': 'Login successful'};
       } else {
         return {
@@ -60,6 +66,33 @@ class AuthService {
       }
       debugPrint('AuthService Login Error: $e');
       return {'success': false, 'message': errorMessage};
+    }
+  }
+
+  // --- Register Device for Push Notifications ---
+  Future<void> _registerDevice() async {
+    try {
+      final token = await _notificationService.getFcmToken();
+      if (token != null && _apiClient != null) {
+        // Use a platform-specific name or a generic one
+        final deviceName = defaultTargetPlatform == TargetPlatform.windows
+            ? 'WindowsApp'
+            : defaultTargetPlatform == TargetPlatform.linux
+                ? 'LinuxApp'
+                : defaultTargetPlatform == TargetPlatform.macOS
+                    ? 'MacOSApp'
+                    : 'WebApp'; // Fallback for web
+
+        await _apiClient!.post('/api/users/devices/', {
+          'registration_id': token,
+          'name': deviceName,
+          'type': 'web', // Or use a platform-specific type
+        });
+        debugPrint('Device registered for push notifications with token: $token');
+      }
+    } catch (e) {
+      // Fail silently. We don't want to block login if this fails.
+      debugPrint('Failed to register device for push notifications: $e');
     }
   }
 

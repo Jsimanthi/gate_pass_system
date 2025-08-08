@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders', # For handling CORS requests from Flutter web/mobile
+    'fcm_django',
 
     # Local apps (will be added by Jules AI)
     'apps.users',
@@ -292,3 +293,12 @@ LOGGING = {
 #         }
 #     }
 # }
+
+# FCM Django settings
+FCM_DJANGO_SETTINGS = {
+    # The default server key is for testing purposes only.
+    # In production, you should set this in your environment variables.
+    "FCM_SERVER_KEY": os.environ.get("FCM_SERVER_KEY", "YOUR_DEFAULT_SERVER_KEY_FOR_TESTING"),
+    # The App Id of your web app from your Firebase project
+    "FCM_APP_ID": os.environ.get("FCM_APP_ID", "YOUR_DEFAULT_APP_ID_FOR_TESTING"),
+}

@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+from fcm_django.models import FCMDevice
 from rest_framework.test import APIClient
 
 User = get_user_model()
@@ -49,3 +50,25 @@ def test_login_api_success():
     data = response.json()
     assert 'access' in data
     assert 'refresh' in data
+
+
+@pytest.mark.django_db
+def test_register_fcm_device():
+    """
+    Tests that a user can register their FCM device token.
+    """
+    client = APIClient()
+    user = User.objects.create_user(username='fcmuser', password='password123')
+    client.force_authenticate(user=user)
+
+    url = '/api/users/devices/'
+    data = {
+        'registration_id': 'test_device_token_12345',
+        'name': 'Test Device',
+        'type': 'web'
+    }
+
+    response = client.post(url, data, format='json')
+
+    assert response.status_code == 201
+    assert FCMDevice.objects.filter(user=user, registration_id='test_device_token_12345').exists()

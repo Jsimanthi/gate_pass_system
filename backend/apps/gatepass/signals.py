@@ -1,5 +1,6 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from fcm_django.models import FCMDevice
 from .models import GatePass, GatePassHistory
 
 @receiver(pre_save, sender=GatePass)
@@ -36,6 +37,15 @@ def log_gate_pass_history_on_save(sender, instance, created, **kwargs):
         # Check if the status has changed by comparing with the old status
         action = 'STATUS_CHANGED'
         details = f'Status changed from {instance._old_status} to {instance.status}.'
+
+        # Send a push notification to the user who created the gate pass
+        if instance.created_by:
+            devices = FCMDevice.objects.filter(user=instance.created_by, active=True)
+            devices.send_message(
+                title="Gate Pass Status Updated",
+                body=f"Your gate pass for {instance.person_name} has been {instance.get_status_display()}.",
+                data={"gatepass_id": str(instance.id)} # Send ID to allow app to navigate
+            )
 
     # We only create a history entry if an action was determined (creation or status change)
     if action:

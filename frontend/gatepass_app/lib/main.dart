@@ -16,6 +16,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common/sqflite_dev.dart'; // Add this import for databaseFactory
 
 import 'firebase_options.dart';
+import 'package:gatepass_app/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +35,10 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Notification Service
+  await NotificationService().initialize();
+
   await dotenv.load(fileName: ".env");
 
   final sharedPreferences = await SharedPreferences.getInstance();
