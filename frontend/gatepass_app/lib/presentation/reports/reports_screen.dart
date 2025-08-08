@@ -59,12 +59,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
       setState(() {
         if (purposesData is List) _purposes = List<Map<String, dynamic>>.from(purposesData);
         if (gatesData is List) _gates = List<Map<String, dynamic>>.from(gatesData);
+        if (_purposes.isEmpty || _gates.isEmpty) {
+          _dropdownError = 'No data available for dropdowns. Please ensure migrations are run and you are logged in.';
+        }
       });
     } catch (e) {
-      setState(() {
-        _dropdownError = "Failed to load filter options.";
-      });
       debugPrint("Error fetching dropdown data: $e");
+      String errorMessage = "Failed to load filter options.";
+      if (e is ApiError) {
+        if (e.statusCode == 401 || e.statusCode == 403) {
+          errorMessage = "Authentication error. Please log in again.";
+        } else if (e.statusCode == 404) {
+          errorMessage = "API endpoint not found. Please check the server configuration.";
+        } else {
+          errorMessage = "A server error occurred: ${e.statusCode}";
+        }
+      } else {
+        errorMessage = "A network error occurred. Check your connection and API_BASE_URL.";
+      }
+      setState(() {
+        _dropdownError = errorMessage;
+      });
     } finally {
       setState(() {
         _isLoadingDropdowns = false;

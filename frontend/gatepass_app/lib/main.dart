@@ -41,7 +41,7 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   final sharedPreferences = await SharedPreferences.getInstance();
-  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://127.0.0.1:8000';
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
 
   final authService = AuthService(sharedPreferences, null);
   final apiClient = ApiClient(baseUrl, authService);
