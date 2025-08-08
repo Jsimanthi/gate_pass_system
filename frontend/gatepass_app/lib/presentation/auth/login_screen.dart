@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey.shade800,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                         ),
                         const SizedBox(
@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey.shade700,
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
                     ),
                     const SizedBox(height: 8),
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Sign in to continue to your Gate Pass account',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 32), // More space before text fields
@@ -169,8 +169,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
                             fontSize: 14,
                           ),
                           textAlign: TextAlign.center,
@@ -190,8 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
+                          ? CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               strokeWidth: 2,
                             )
                           : const Text('Login'),

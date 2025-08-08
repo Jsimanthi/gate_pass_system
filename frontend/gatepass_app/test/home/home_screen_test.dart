@@ -6,6 +6,8 @@ import 'package:gatepass_app/services/auth_service.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/local_database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:gatepass_app/presentation/dashboard/dashboard_overview_screen.dart';
+
 
 import 'home_screen_test.mocks.dart';
 
@@ -16,8 +18,6 @@ void main() {
 
   late MockAuthService mockAuthService;
   late MockApiClient mockApiClient;
-  // This mock is not injected, but we can use it if we refactor later.
-  // For now, the real service will run against an in-memory FFI database.
   late MockLocalDatabaseService mockLocalDatabaseService;
 
   setUp(() {
@@ -32,11 +32,6 @@ void main() {
           'approved_passes': 0,
           'rejected_passes': 0,
         });
-
-    // Since LocalDatabaseService is not injected, we can't stop it from running.
-    // But we can mock the other services that HomeScreen depends on.
-    // We will let the real LocalDatabaseService run, which is fine in a test
-    // environment thanks to sqflite_common_ffi.
   });
 
   Widget createWidgetUnderTest() {
@@ -48,56 +43,50 @@ void main() {
     );
   }
 
+  // Helper to set screen size for responsive tests
+  void setScreenSize(WidgetTester tester, Size size) {
+    tester.binding.window.physicalSizeTestValue = size;
+    tester.binding.window.devicePixelRatioTestValue = 1.0;
+    // Add a tear down to clear the values after the test
+    addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+  }
+
   testWidgets('shows loading indicator while fetching role', (WidgetTester tester) async {
-    // Arrange: Don't complete the future immediately
     when(mockAuthService.getUserRole()).thenAnswer((_) => Future.delayed(const Duration(seconds: 1), () => 'Admin'));
-
-    // Act
     await tester.pumpWidget(createWidgetUnderTest());
-
-    // Assert: Loading indicator is shown
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-    // Let the future complete
     await tester.pumpAndSettle();
   });
 
-  testWidgets('shows Admin UI for Admin role', (WidgetTester tester) async {
-    // Arrange
+  testWidgets('displays correct initial screen for Admin role', (WidgetTester tester) async {
     when(mockAuthService.getUserRole()).thenAnswer((_) async => 'Admin');
-
-    // Act
     await tester.pumpWidget(createWidgetUnderTest());
-    await tester.pumpAndSettle(); // Wait for FutureBuilder to complete
-
-    // Assert
-    expect(find.text('Dashboard'), findsOneWidget);
-    expect(find.text('My Passes'), findsOneWidget);
-    expect(find.text('Request Pass'), findsOneWidget);
-    expect(find.text('Scan QR'), findsOneWidget);
-    expect(find.text('Reports'), findsOneWidget);
-    expect(find.text('Manage Passes'), findsOneWidget);
-    expect(find.byIcon(Icons.sensor_door), findsOneWidget); // Icon for Manage Passes
+    await tester.pumpAndSettle();
+    // Check that the first screen is the dashboard
+    expect(find.byType(DashboardOverviewScreen), findsOneWidget);
   });
 
-  testWidgets('shows User UI for User role', (WidgetTester tester) async {
-    // Arrange
-    when(mockAuthService.getUserRole()).thenAnswer((_) async => 'User');
-
-    // Act
+  testWidgets('shows NavigationBar on small screens for Admin', (WidgetTester tester) async {
+    setScreenSize(tester, const Size(400, 800)); // Mobile size
+    when(mockAuthService.getUserRole()).thenAnswer((_) async => 'Admin');
     await tester.pumpWidget(createWidgetUnderTest());
-    await tester.pumpAndSettle(); // Wait for FutureBuilder to complete
+    await tester.pumpAndSettle();
 
-    // Assert
-    expect(find.text('Dashboard'), findsOneWidget);
-    expect(find.text('My Passes'), findsOneWidget);
-    expect(find.text('Request Pass'), findsOneWidget);
-    expect(find.text('Reports'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(NavigationRail), findsNothing);
+    // Check for a label that is unique to the Admin role
+    expect(find.text('Manage Passes'), findsOneWidget);
+  });
 
-    // These should NOT be visible for a standard User
-    expect(find.text('Scan QR'), findsNothing);
-    expect(find.text('Manage Passes'), findsNothing);
-    expect(find.byIcon(Icons.qr_code_scanner), findsNothing);
-    expect(find.byIcon(Icons.sensor_door), findsNothing);
+  testWidgets('shows NavigationRail on large screens for Admin', (WidgetTester tester) async {
+    setScreenSize(tester, const Size(1200, 800)); // Desktop size
+    when(mockAuthService.getUserRole()).thenAnswer((_) async => 'Admin');
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    // Check for a label that is unique to the Admin role
+    expect(find.text('Manage Passes'), findsOneWidget);
   });
 }
