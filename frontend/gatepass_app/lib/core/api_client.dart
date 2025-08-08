@@ -5,6 +5,17 @@ import 'package:http/http.dart' as http;
 import 'package:gatepass_app/services/auth_service.dart'; // Import AuthService
 import 'package:flutter/foundation.dart'; // Import for debugPrint
 
+// Custom Exception for API Errors
+class ApiError implements Exception {
+  final int statusCode;
+  final String message;
+
+  ApiError({required this.statusCode, required this.message});
+
+  @override
+  String toString() => 'ApiError(statusCode: $statusCode, message: $message)';
+}
+
 class ApiClient {
   final String _baseUrl;
   AuthService?
@@ -129,32 +140,42 @@ class ApiClient {
           debugPrint(
             'Warning: Non-JSON 2xx response for ${response.request?.url}: ${response.body}',
           );
-          return {'message': 'Success, but response body is not valid JSON'};
+          // For successful but non-JSON responses, return a simple success map or the raw body
+          return {'message': 'Success', 'body': response.body};
         }
       }
+      // If the body is empty but status is 2xx, return null or an empty map
       return null;
     } else {
-      String errorMessage =
-          'Failed to load data. Status code: ${response.statusCode}';
+      String errorMessage = 'An unknown error occurred.';
       if (response.body.isNotEmpty) {
         try {
           final errorData = json.decode(response.body);
-          if (errorData is Map && errorData.containsKey('detail')) {
-            errorMessage = errorData['detail'];
-          } else if (errorData is Map && errorData.containsKey('message')) {
-            errorMessage = errorData['message'];
+          if (errorData is Map) {
+            // Standard DRF error responses
+            if (errorData.containsKey('detail')) {
+              errorMessage = errorData['detail'];
+            } else if (errorData.containsKey('message')) {
+              errorMessage = errorData['message'];
+            }
+            // Handling DRF validation errors (e.g., {'field': ['error message']})
+            else {
+              final firstError = errorData.entries.first;
+              errorMessage = '${firstError.key}: ${firstError.value[0]}';
+            }
           } else {
-            errorMessage = 'Error response: ${response.body}';
+            errorMessage = response.body; // Fallback for non-JSON error bodies
           }
         } catch (e) {
-          errorMessage =
-              'Failed to parse error response (Non-JSON or malformed): ${response.body}';
+          errorMessage = 'Failed to parse error response: ${response.body}';
         }
+      } else {
+          errorMessage = 'API returned status ${response.statusCode} with no content.';
       }
       debugPrint(
         'API Error: $errorMessage (URL: ${response.request?.url}, Status: ${response.statusCode})',
       );
-      throw Exception(errorMessage);
+      throw ApiError(statusCode: response.statusCode, message: errorMessage);
     }
   }
 
