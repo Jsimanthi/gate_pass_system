@@ -20,12 +20,10 @@ void main() {
 
   late MockAuthService mockAuthService;
   late MockApiClient mockApiClient;
-  late MockLocalDatabaseService mockLocalDatabaseService;
 
   setUp(() {
     mockAuthService = MockAuthService();
     mockApiClient = MockApiClient();
-    mockLocalDatabaseService = MockLocalDatabaseService();
 
     // Add a default stub for the dashboard summary API call to prevent MissingStubError
     when(mockApiClient.get(any)).thenAnswer((_) async => {
@@ -47,10 +45,11 @@ void main() {
 
   // Helper to set screen size for responsive tests
   void setScreenSize(WidgetTester tester, Size size) {
-    tester.binding.window.physicalSizeTestValue = size;
-    tester.binding.window.devicePixelRatioTestValue = 1.0;
+    final view = tester.view;
+    view.physicalSize = size;
+    view.devicePixelRatio = 1.0;
     // Add a tear down to clear the values after the test
-    addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+    addTearDown(view.reset);
   }
 
   testWidgets('shows loading indicator while fetching role', (WidgetTester tester) async {

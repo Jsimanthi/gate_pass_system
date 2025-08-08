@@ -13,7 +13,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common/sqflite_dev.dart'; // Add this import for databaseFactory
 
 import 'firebase_options.dart';
 import 'package:gatepass_app/services/notification_service.dart';

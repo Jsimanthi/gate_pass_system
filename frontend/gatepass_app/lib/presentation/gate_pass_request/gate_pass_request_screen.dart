@@ -66,9 +66,6 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     } else if (response is List) {
       return List<Map<String, dynamic>>.from(response);
     }
-    print(
-      'Warning: API response not in expected paginated or list format: $response',
-    );
     return [];
   }
 
@@ -94,7 +91,6 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     } catch (e) {
       setState(() {
         _errorMessage = 'Error loading data: $e';
-        print('API Fetch Error: $_errorMessage');
       });
     } finally {
       setState(() {
@@ -122,6 +118,7 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
     );
 
     if (pickedDate != null) {
+      if (!mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(
@@ -207,8 +204,6 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
           'alcohol_test_required': _alcoholTestRequired,
         };
 
-        print('Data being sent: $data');
-
         await _apiClient.post('/api/gatepass/gatepasses/', data);
 
         if (mounted) {
@@ -242,7 +237,6 @@ class _GatePassRequestScreenState extends State<GatePassRequestScreen> {
             ),
           );
         }
-        print('API Submission Error: $e');
       } finally {
         setState(() {
           _isSubmitting = false;

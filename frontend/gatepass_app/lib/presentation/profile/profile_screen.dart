@@ -21,7 +21,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ApiClient _apiClient;
-  late final AuthService _authService;
   bool _isLoading = true;
   String? _errorMessage;
   Map<String, dynamic>? _userData; // To store fetched user data
@@ -30,7 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _apiClient = widget.apiClient;
-    _authService = widget.authService;
     _fetchUserProfile(); // Initiate API call when screen initializes
   }
 
@@ -191,23 +189,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          // Optional: Add buttons for editing profile, changing password etc.
-          // Center(
-          //   child: ElevatedButton.icon(
-          //     onPressed: () {
-          //       // TODO: Implement navigation to Edit Profile screen
-          //       ScaffoldMessenger.of(context).showSnackBar(
-          //         const SnackBar(content: Text('Edit Profile Feature Coming Soon!')),
-          //       );
-          //     },
-          //     icon: const Icon(Icons.edit),
-          //     label: const Text('Edit Profile'),
-          //     style: ElevatedButton.styleFrom(
-          //       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          //       textStyle: const TextStyle(fontSize: 16),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );

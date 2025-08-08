@@ -115,10 +115,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       if (await canLaunchUrl(url)) {
         await launchUrl(url);
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open export URL.')));
       }
     } catch (e) {
       debugPrint("Error launching URL: $e");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('An error occurred during export.')));
     }
   }
@@ -245,7 +247,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildDropdown<T>(T? value, String hint, List<Map<String, dynamic>> items, ValueChanged<T?> onChanged) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       hint: Text(hint),
       onChanged: onChanged,
       items: items.map<DropdownMenuItem<T>>((item) {
@@ -383,7 +385,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       barWidth: 3,
                       color: Theme.of(context).primaryColor,
                       dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(show: true, color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                      belowBarData: BarAreaData(show: true, color: Theme.of(context).primaryColor.withAlpha((255 * 0.3).round())),
                     ),
                   ],
                 ),
