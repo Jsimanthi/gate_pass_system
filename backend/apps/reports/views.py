@@ -34,7 +34,7 @@ class ReportViewSet(viewsets.GenericViewSet):
         }
         return Response(summary)
 
-    @action(detail=False, methods=['get'], url_path='daily-summary-export', url_name='daily-summary-export')
+    @action(detail=False, methods=['get'], url_path='daily-summary/export', url_name='daily-summary-export')
     def daily_visitor_summary_export(self, request):
         filterset = GatePassFilter(request.query_params, queryset=GatePass.objects.all())
         gate_passes = filterset.qs
