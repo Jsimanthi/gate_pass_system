@@ -144,8 +144,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final queryString = _buildQueryString(queryParams);
     // Reverting to using dotenv, but keeping the null-coalescing for safety.
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
-    // Corrected the URL endpoint to be consistent with the new backend routing
-    final url = Uri.parse('$baseUrl/api/reports/daily-summary/export/$queryString');
+    // URL endpoint has been restructured for clarity and to avoid routing conflicts
+    final url = Uri.parse('$baseUrl/api/reports/export/daily-summary/$queryString');
 
     try {
       if (await canLaunchUrl(url)) {
