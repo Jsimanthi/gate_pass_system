@@ -5,6 +5,7 @@ import 'package:gatepass_app/presentation/auth/login_screen.dart';
 import 'package:gatepass_app/presentation/home/home_screen.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/presentation/admin/admin_screen.dart';
+import 'package:gatepass_app/presentation/visitor/visitor_form_screen.dart';
 import 'package:gatepass_app/core/api_client.dart';
 import 'package:gatepass_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -126,6 +127,7 @@ class MyApp extends StatelessWidget {
         '/reports': (context) => ReportsScreen(apiClient: apiClient),
         '/admin': (context) =>
             AdminScreen(apiClient: apiClient, authService: authService),
+        '/visitor-form': (context) => VisitorFormScreen(apiClient: apiClient),
       },
     );
   }

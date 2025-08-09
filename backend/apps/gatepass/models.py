@@ -126,3 +126,28 @@ class GatePassHistory(models.Model):
 
     def __str__(self):
         return f'{self.gate_pass} - {self.action} by {self.user} at {self.timestamp}'
+
+
+class VisitorPass(models.Model):
+    # Status Choices
+    PENDING = 'PENDING'
+    APPROVED = 'APPROVED'
+    REJECTED = 'REJECTED'
+    STATUS_CHOICES = [
+        (PENDING, 'Pending'),
+        (APPROVED, 'Approved'),
+        (REJECTED, 'Rejected'),
+    ]
+
+    visitor_name = models.CharField(max_length=255)
+    visitor_company = models.CharField(max_length=255)
+    purpose = models.TextField()
+    whom_to_visit = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='visitor_passes')
+    visitor_selfie = models.ImageField(upload_to='visitor_selfies/')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Visitor Pass for {self.visitor_name} to visit {self.whom_to_visit.get_full_name()} ({self.status})"

@@ -14,3 +14,9 @@ class CurrentUserView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class EmployeeListView(generics.ListAPIView):
+    queryset = User.objects.filter(is_active=True).order_by('first_name', 'last_name')
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]

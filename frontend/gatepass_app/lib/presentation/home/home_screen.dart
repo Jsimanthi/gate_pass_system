@@ -12,6 +12,8 @@ import 'package:gatepass_app/services/local_database_service.dart';
 import 'package:gatepass_app/presentation/reports/reports_screen.dart';
 import 'package:gatepass_app/presentation/admin/admin_screen.dart';
 import 'package:gatepass_app/presentation/profile/profile_screen.dart';
+import 'package:gatepass_app/presentation/employee/visitor_requests_screen.dart';
+import 'package:gatepass_app/presentation/security/approved_visitors_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -99,12 +101,14 @@ class _HomeScreenState extends State<HomeScreen> {
       widgetOptions.addAll([
         MyPassesScreen(apiClient: _apiClient, authService: _authService),
         GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+        VisitorRequestsScreen(apiClient: _apiClient),
         QrScannerScreen(apiClient: _apiClient),
         ReportsScreen(apiClient: _apiClient),
         AdminScreen(apiClient: _apiClient, authService: _authService),
       ]);
     } else if (userRole == 'Security') {
       widgetOptions.addAll([
+        ApprovedVisitorsScreen(apiClient: _apiClient),
         QrScannerScreen(apiClient: _apiClient),
         ReportsScreen(apiClient: _apiClient),
       ]);
@@ -117,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
       widgetOptions.addAll([
         MyPassesScreen(apiClient: _apiClient, authService: _authService),
         GatePassRequestScreen(apiClient: _apiClient, authService: _authService),
+        VisitorRequestsScreen(apiClient: _apiClient),
         ReportsScreen(apiClient: _apiClient),
       ]);
     }
@@ -131,12 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
       navBarItems.addAll([
         const NavigationDestination(icon: Icon(Icons.description_outlined), selectedIcon: Icon(Icons.description), label: 'My Passes'),
         const NavigationDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: 'Request Pass'),
+        const NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people), label: 'Visitor Requests'),
         const NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
         const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
         const NavigationDestination(icon: Icon(Icons.sensor_door_outlined), selectedIcon: Icon(Icons.sensor_door), label: 'Manage Passes'),
       ]);
     } else if (userRole == 'Security') {
       navBarItems.addAll([
+        const NavigationDestination(icon: Icon(Icons.verified_user_outlined), selectedIcon: Icon(Icons.verified_user), label: 'Approved'),
         const NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
         const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
       ]);
@@ -149,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
       navBarItems.addAll([
         const NavigationDestination(icon: Icon(Icons.description_outlined), selectedIcon: Icon(Icons.description), label: 'My Passes'),
         const NavigationDestination(icon: Icon(Icons.add_box_outlined), selectedIcon: Icon(Icons.add_box), label: 'Request Pass'),
+        const NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people), label: 'Visitor Requests'),
         const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
       ]);
     }

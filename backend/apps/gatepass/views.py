@@ -4,8 +4,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import GatePass, PreApprovedVisitor, GatePassTemplate
-from .serializers import GatePassSerializer, PreApprovedVisitorSerializer, GatePassTemplateSerializer
+from .models import VisitorPass, GatePass, PreApprovedVisitor, GatePassTemplate
+from .serializers import VisitorPassSerializer, GatePassSerializer, PreApprovedVisitorSerializer, GatePassTemplateSerializer
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.views import APIView
@@ -31,6 +31,53 @@ class DashboardSummaryView(APIView):
             'approved_count': approved_count,
             'rejected_count': rejected_count,
         })
+
+
+class VisitorPassViewSet(viewsets.ModelViewSet):
+    serializer_class = VisitorPassSerializer
+    queryset = VisitorPass.objects.all().order_by('-created_at')
+
+    def get_permissions(self):
+        if self.action == 'create':
+            self.permission_classes = [permissions.AllowAny]
+        else:
+            self.permission_classes = [permissions.IsAuthenticated]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return VisitorPass.objects.none()
+
+        if user.groups.filter(name='Security').exists():
+            return VisitorPass.objects.filter(status=VisitorPass.APPROVED)
+
+        if user.is_staff or user.is_superuser:
+            return VisitorPass.objects.all()
+
+        return VisitorPass.objects.filter(whom_to_visit=user)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def approve(self, request, pk=None):
+        visitor_pass = self.get_object()
+        if visitor_pass.whom_to_visit != request.user and not request.user.is_staff:
+            return Response({'detail': 'Not authorized to approve this pass.'}, status=status.HTTP_403_FORBIDDEN)
+
+        visitor_pass.status = VisitorPass.APPROVED
+        visitor_pass.save()
+        # TODO: Add notification logic here for security and visitor
+        return Response(VisitorPassSerializer(visitor_pass).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def reject(self, request, pk=None):
+        visitor_pass = self.get_object()
+        if visitor_pass.whom_to_visit != request.user and not request.user.is_staff:
+            return Response({'detail': 'Not authorized to reject this pass.'}, status=status.HTTP_403_FORBIDDEN)
+
+        visitor_pass.status = VisitorPass.REJECTED
+        visitor_pass.save()
+        # TODO: Add notification logic here for visitor
+        return Response(VisitorPassSerializer(visitor_pass).data)
 
 
 # GatePass ViewSet
