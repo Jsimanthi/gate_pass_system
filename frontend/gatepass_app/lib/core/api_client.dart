@@ -17,12 +17,12 @@ class ApiError implements Exception {
 }
 
 class ApiClient {
-  final String _baseUrl;
+  final String baseUrl;
   AuthService?
   _authService; // Made nullable to handle circular dependency during initialization
 
   // Constructor now requires baseUrl and AuthService instance (can be null initially)
-  ApiClient(this._baseUrl, this._authService);
+  ApiClient(this.baseUrl, this._authService);
 
   // Setter for AuthService, used to break circular dependency during initial app setup
   void setAuthService(AuthService service) {
@@ -48,7 +48,7 @@ class ApiClient {
 
   // --- GET Request ---
   Future<dynamic> get(String endpoint) async {
-    final url = Uri.parse('$_baseUrl$endpoint');
+    final url = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders();
 
     debugPrint('API GET Request to: $url');
@@ -68,7 +68,7 @@ class ApiClient {
     Map<String, dynamic> body, {
     String? customToken,
   }) async {
-    final url = Uri.parse('$_baseUrl$endpoint');
+    final url = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders(customToken: customToken);
 
     debugPrint('API POST Request to: $url');
@@ -93,7 +93,7 @@ class ApiClient {
     Map<String, dynamic> body, {
     String? customToken, // Corrected parameter name
   }) async {
-    final url = Uri.parse('$_baseUrl$endpoint');
+    final url = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders(
       customToken: customToken,
     ); // Corrected parameter name here too
@@ -116,7 +116,7 @@ class ApiClient {
 
   // --- DELETE Request ---
   Future<dynamic> delete(String endpoint, {String? customToken}) async {
-    final url = Uri.parse('$_baseUrl$endpoint');
+    final url = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders(customToken: customToken);
 
     debugPrint('API DELETE Request to: $url');

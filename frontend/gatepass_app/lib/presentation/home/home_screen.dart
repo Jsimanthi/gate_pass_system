@@ -14,6 +14,7 @@ import 'package:gatepass_app/presentation/admin/admin_screen.dart';
 import 'package:gatepass_app/presentation/profile/profile_screen.dart';
 import 'package:gatepass_app/presentation/employee/visitor_requests_screen.dart';
 import 'package:gatepass_app/presentation/security/approved_visitors_screen.dart';
+import 'package:gatepass_app/presentation/admin/generate_qr_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -105,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
         QrScannerScreen(apiClient: _apiClient),
         ReportsScreen(apiClient: _apiClient),
         AdminScreen(apiClient: _apiClient, authService: _authService),
+        GenerateQRScreen(apiClient: _apiClient),
       ]);
     } else if (userRole == 'Security') {
       widgetOptions.addAll([
@@ -140,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
         const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Reports'),
         const NavigationDestination(icon: Icon(Icons.sensor_door_outlined), selectedIcon: Icon(Icons.sensor_door), label: 'Manage Passes'),
+        const NavigationDestination(icon: Icon(Icons.qr_code_2_outlined), selectedIcon: Icon(Icons.qr_code_2), label: 'Generate QR'),
       ]);
     } else if (userRole == 'Security') {
       navBarItems.addAll([
