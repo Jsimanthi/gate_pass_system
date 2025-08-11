@@ -1,7 +1,7 @@
 # backend/apps/gatepass/serializers.py
 
 from rest_framework import serializers
-from .models import GatePass, Purpose, Gate, PreApprovedVisitor, GatePassTemplate
+from .models import VisitorPass, GatePass, Purpose, Gate, PreApprovedVisitor, GatePassTemplate
 from apps.users.models import CustomUser
 from apps.vehicles.models import Vehicle
 from apps.drivers.models import Driver
@@ -119,6 +119,7 @@ class GatePassSerializer(serializers.ModelSerializer):
                 ret[field_name] = dt_value.strftime("%d-%m-%Y, %I:%M:%S %p")
             else:
                 ret[field_name] = None
+
         return ret
         
     # The `create` method override is no longer strictly necessary if your field names
@@ -141,6 +142,53 @@ class GatePassSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return gate_pass
+
+
+class VisitorPassSerializer(serializers.ModelSerializer):
+    whom_to_visit = SimpleUserSerializer(read_only=True)
+    whom_to_visit_id = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(),
+        source='whom_to_visit',
+        write_only=True
+    )
+    visitor_selfie = serializers.ImageField(required=True)
+
+    class Meta:
+        model = VisitorPass
+        fields = (
+            'id',
+            'visitor_name',
+            'visitor_company',
+            'purpose',
+            'whom_to_visit',
+            'whom_to_visit_id',
+            'visitor_selfie',
+            'status',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('id', 'status', 'created_at', 'updated_at', 'whom_to_visit')
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # Format the datetime fields for display
+        for field_name in ['created_at', 'updated_at']:
+            dt_value = getattr(instance, field_name)
+            if dt_value:
+                ret[field_name] = dt_value.strftime("%d-%m-%Y, %I:%M:%S %p")
+            else:
+                ret[field_name] = None
+
+        # Build full URL for the selfie image
+        request = self.context.get('request')
+        if instance.visitor_selfie and hasattr(instance.visitor_selfie, 'url'):
+            if request:
+                ret['visitor_selfie'] = request.build_absolute_uri(instance.visitor_selfie.url)
+            else:
+                # Fallback if request context is not available
+                ret['visitor_selfie'] = instance.visitor_selfie.url
+
+        return ret
 
 
 class PreApprovedVisitorSerializer(serializers.ModelSerializer):

@@ -34,7 +34,7 @@ class ReportViewSet(viewsets.GenericViewSet):
         }
         return Response(summary)
 
-    @action(detail=False, methods=['get'], url_path='export/daily-summary', url_name='report-daily-summary-export')
+    @action(detail=False, methods=['get'])
     def daily_visitor_summary_export(self, request):
         filterset = GatePassFilter(request.query_params, queryset=GatePass.objects.all())
         gate_passes = filterset.qs
@@ -101,7 +101,7 @@ class ReportViewSet(viewsets.GenericViewSet):
         }
         return Response(summary)
 
-    @action(detail=False, methods=['get'], url_path='export/monthly-summary', url_name='monthly-summary-export')
+    @action(detail=False, methods=['get'])
     def monthly_visitor_summary_export(self, request):
         filterset = GatePassFilter(request.query_params, queryset=GatePass.objects.all())
         gate_passes = filterset.qs
@@ -158,7 +158,7 @@ class ReportViewSet(viewsets.GenericViewSet):
         ).order_by('-total_gate_passes')
         return Response(driver_performance)
 
-    @action(detail=False, methods=['get'], url_path='export/driver-performance', url_name='driver-performance-export')
+    @action(detail=False, methods=['get'])
     def driver_performance_report_export(self, request):
         filterset = GatePassFilter(request.query_params, queryset=GatePass.objects.all())
         gate_passes = filterset.qs
@@ -206,7 +206,7 @@ class ReportViewSet(viewsets.GenericViewSet):
         serializer = GateLogSerializer(incidents, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='export/security-incidents', url_name='security-incidents-export')
+    @action(detail=False, methods=['get'])
     def security_incident_report_export(self, request):
         filterset = GateLogFilter(request.query_params, queryset=GateLog.objects.filter(status='failure'))
         incidents = filterset.qs
