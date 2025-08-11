@@ -160,7 +160,7 @@ MEDIA_ROOT = BASE_DIR / 'media' # Directory for user uploaded media
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Base URL for the frontend application
-FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL', 'http://localhost:3000')
+FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL', 'http://localhost:8000')
 
 # REST Framework settings
 REST_FRAMEWORK = {
